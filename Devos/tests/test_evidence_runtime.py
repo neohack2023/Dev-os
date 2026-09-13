@@ -93,7 +93,7 @@ class EvidenceStoreTests(unittest.TestCase):
         db = self.make_db()
         connection = connect_runtime(db)
         try:
-            self.assertEqual(3, CURRENT_SCHEMA_VERSION)
+            self.assertEqual(4, CURRENT_SCHEMA_VERSION)
             result = persist_episode(connection, self.load_episode())
             self.assertEqual("CONVERGENCE", result["triangulation_state"])
             self.assertEqual("NONE", result["authority_effect"])
