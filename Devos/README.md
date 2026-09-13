@@ -1,6 +1,6 @@
 # DevOS Portable Package
 
-DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, and immutable local evidence that live with the code they serve.
+DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, immutable local evidence, and evidence-bounded reflection candidates that live with the code they serve.
 
 Everything owned by the package lives under `Devos/` so the folder can be copied into another repository intact.
 
@@ -24,7 +24,7 @@ python Devos/runtime/task_queue.py next --canary
 python Devos/runtime/task_queue.py show <task-id>
 ```
 
-Declarations live in `Devos/tasks.jsonl`; append-only lifecycle overlays live in `Devos/task-events.jsonl`. Selection is deterministic and host-neutral. See `contracts/TASK_QUEUE.md` and checkpoint `checkpoints/TASK_QUEUE_PORT_01.md`.
+Declarations live in `Devos/tasks.jsonl`; append-only lifecycle overlays live in `Devos/task-events.jsonl`. Selection is deterministic and host-neutral.
 
 ### Repository validator
 
@@ -32,7 +32,7 @@ Declarations live in `Devos/tasks.jsonl`; append-only lifecycle overlays live in
 python Devos/runtime/repo_validator.py validate
 ```
 
-The validator checks project/governance agreement, branch topology and host surfaces, task routing, tool pinning, path safety, and local-first authority rules without requiring Notion or any other live external-memory service. `python Devos/runtime/devos.py validate` delegates initialized-instance checks to it.
+The validator checks project/governance agreement, branch topology and host surfaces, task routing, tool pinning, path safety, and local-first authority rules without requiring live external memory.
 
 ### Knowledge database
 
@@ -63,7 +63,23 @@ python Devos/runtime/evidence_store.py list --branch project-core
 
 Evidence roots and atomic findings are admitted as durable SQLite state. Lineage collapse prevents derivatives and same-input reproductions from inflating independent support. Explicit cross-reference and triangulation produce review-oriented delta packets whose `authority_effect` is always `NONE`.
 
-Evidence IDs are immutable: identical replay is idempotent, while reusing an ID with changed content is rejected. Normal knowledge projection rebuilds preserve evidence. See `contracts/EVIDENCE_RUNTIME.md`, `schemas/evidence-episode.schema.json`, and checkpoint `checkpoints/EVIDENCE_RUNTIME_PORT_01.md`.
+Evidence IDs are immutable: identical replay is idempotent, while reusing an ID with changed content is rejected. Normal knowledge projection rebuilds preserve evidence.
+
+### Reflection core
+
+```bash
+python Devos/runtime/reflection_store.py --db Devos/state/devos-knowledge.db \
+  reflect --delta <delta-id> --request path/to/reflection-request.json
+
+python Devos/runtime/reflection_store.py --db Devos/state/devos-knowledge.db \
+  list --branch project-core
+```
+
+Reflection starts from an admitted evidence delta. The request must cite evidence already present on that delta, provide a competing explanation, predict a consequence, and define a disconfirmation test.
+
+Reflection candidates are deterministic, immutable/idempotent durable runtime state. They remain `CANDIDATE_ONLY` with `authority_effect: NONE`. Competing hypotheses over the same delta remain distinct candidates. Reflective prose cannot promote itself or manufacture evidence.
+
+See `contracts/REFLECTION_CORE.md`, `schemas/reflection-request.schema.json`, and checkpoint `checkpoints/REFLECTION_CORE_PORT_01.md`.
 
 ## Core law
 

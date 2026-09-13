@@ -1,6 +1,6 @@
 {
   "name": "DevOS",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "portable_root": "Devos",
   "origin": {
     "repository": "neohack2023/project-orath",
@@ -46,6 +46,23 @@
       "source_blobs": {
         "evidence_runtime.py": "0af8ef46001d66ceeb44497e2c127c39c2264d01",
         "evidence_store.py": "09873d6e3085b3709245009df3b9bf932f20a7c0"
+      }
+    },
+    {
+      "key": "reflection_core",
+      "checkpoint": "REFLECTION_CORE_PORT_01",
+      "runtime": [
+        "runtime/reflection_core.py",
+        "runtime/delta_reflection.py",
+        "runtime/reflection_store.py"
+      ],
+      "schemas": [
+        "schemas/runtime-db-v3.sql",
+        "schemas/reflection-request.schema.json"
+      ],
+      "source_blobs": {
+        "reflection_core.py": "aa3d6a8c33b05d16a607f478057aad5a8f6e8e36",
+        "delta_reflection.py": "4336509373b29cdbcca76f1381d3afdef48f8c07"
       }
     }
   ],

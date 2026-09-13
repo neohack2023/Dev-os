@@ -34,3 +34,16 @@ jobs:
         run: |
           python Devos/runtime/evidence_store.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db admit Devos/tests/fixtures/evidence/episode-convergence.json
           python Devos/runtime/evidence_store.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db list --branch feature-lantern
+      - name: Derive and inspect reflection fixture
+        run: |
+          DELTA_ID=$(python - <<'PY'
+          import sqlite3
+          connection = sqlite3.connect("/tmp/devos-knowledge.db")
+          try:
+              print(connection.execute("SELECT delta_id FROM evidence_delta_packets ORDER BY created_at, delta_id LIMIT 1").fetchone()[0])
+          finally:
+              connection.close()
+          PY
+          )
+          python Devos/runtime/reflection_store.py --db /tmp/devos-knowledge.db reflect --delta "$DELTA_ID" --request Devos/tests/fixtures/reflection/request-lantern.json
+          python Devos/runtime/reflection_store.py --db /tmp/devos-knowledge.db list --branch feature-lantern
