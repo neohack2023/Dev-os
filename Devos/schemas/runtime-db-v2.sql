@@ -23,8 +23,7 @@ CREATE TABLE IF NOT EXISTS atomic_findings (
     related_claim_keys_json TEXT NOT NULL,
     supersedes_claim_id TEXT,
     created_at TEXT NOT NULL,
-    row_hash TEXT NOT NULL,
-    FOREIGN KEY(branch_key) REFERENCES branch_state(branch_key) ON DELETE RESTRICT
+    row_hash TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS finding_roots (
     finding_id TEXT NOT NULL,
