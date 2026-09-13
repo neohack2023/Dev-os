@@ -47,3 +47,52 @@ jobs:
           )
           python Devos/runtime/reflection_store.py --db /tmp/devos-knowledge.db reflect --delta "$DELTA_ID" --request Devos/tests/fixtures/reflection/request-lantern.json
           python Devos/runtime/reflection_store.py --db /tmp/devos-knowledge.db list --branch feature-lantern
+      - name: Admit and inspect learning fixture
+        run: |
+          python - <<'PY'
+          import json, sqlite3
+          connection = sqlite3.connect("/tmp/devos-knowledge.db")
+          connection.row_factory = sqlite3.Row
+          try:
+              row = connection.execute("SELECT reflection_id,payload_json FROM reflection_candidates WHERE branch_key='feature-lantern' ORDER BY created_at,reflection_id LIMIT 1").fetchone()
+              payload = json.loads(row["payload_json"])
+              bundle = {
+                  "observed_at": "2026-09-13T23:20:00+00:00",
+                  "procedure": {
+                      "branch_scope": "feature-lantern",
+                      "name": "lantern-stability-check",
+                      "version": "1",
+                      "trigger_conditions": ["lantern state available"],
+                      "input_schema": ["state"],
+                      "output_schema": ["stable"],
+                      "implementation_ref": "tests:lantern_stability_check",
+                      "source_reflection_ids": [row["reflection_id"]],
+                      "source_evidence_refs": payload["source_evidence_refs"],
+                      "known_failures": ["hidden mutable ordering"]
+                  },
+                  "evaluation": {"results": [
+                      {"fixture_id":"inv","tier":"T0","passed":True,"input_identity":"contract"},
+                      {"fixture_id":"known","tier":"T1","passed":True,"input_identity":"fixture-A"},
+                      {"fixture_id":"dev","tier":"T2","passed":True,"input_identity":"fixture-B"},
+                      {"fixture_id":"holdout","tier":"T3","passed":True,"input_identity":"fixture-C"},
+                      {"fixture_id":"regression","tier":"T4","passed":True,"input_identity":"fixture-R"},
+                      {"fixture_id":"canary","tier":"T5","passed":True,"input_identity":"real-canary"}
+                  ]},
+                  "capability": {
+                      "capability_key": "lantern.stability",
+                      "description": "Recognize deterministic lantern state across unseen inputs.",
+                      "known_tasks": ["lantern stability"],
+                      "known_failure_modes": ["hidden mutable ordering"]
+                  },
+                  "experience": {
+                      "memory_type": "PROCEDURAL",
+                      "statement": "Lantern stability procedure transferred to held-out input and passed regression plus canary checks."
+                  }
+              }
+              with open("/tmp/learning-bundle.json", "w", encoding="utf-8") as handle:
+                  json.dump(bundle, handle, indent=2, sort_keys=True)
+          finally:
+              connection.close()
+          PY
+          python Devos/runtime/learning_store.py --db /tmp/devos-knowledge.db admit /tmp/learning-bundle.json
+          python Devos/runtime/learning_store.py --db /tmp/devos-knowledge.db list --branch feature-lantern
