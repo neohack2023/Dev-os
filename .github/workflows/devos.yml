@@ -153,3 +153,118 @@ jobs:
           )
           python Devos/runtime/promotion_gate.py --db /tmp/devos-knowledge.db verify --envelope "$ENVELOPE_ID" /tmp/promotion-verification.json
           python Devos/runtime/promotion_gate.py --db /tmp/devos-knowledge.db list --branch feature-lantern
+      - name: Exercise MASON local execution fixture
+        run: |
+          rm -rf /tmp/devos-mason-repo
+          mkdir -p /tmp/devos-mason-repo/src
+          git -C /tmp/devos-mason-repo init -b main
+          git -C /tmp/devos-mason-repo config user.email devos@example.invalid
+          git -C /tmp/devos-mason-repo config user.name "DevOS Fixture"
+          printf 'base\n' > /tmp/devos-mason-repo/src/value.txt
+          git -C /tmp/devos-mason-repo add .
+          git -C /tmp/devos-mason-repo commit -m base
+          export BASE=$(git -C /tmp/devos-mason-repo rev-parse HEAD)
+          printf 'candidate\n' > /tmp/devos-mason-repo/src/value.txt
+          git -C /tmp/devos-mason-repo add .
+          git -C /tmp/devos-mason-repo commit -m candidate
+          export CANDIDATE=$(git -C /tmp/devos-mason-repo rev-parse HEAD)
+          export DIGEST=$(python - <<'PY'
+          import os, sys
+          from pathlib import Path
+          sys.path.insert(0, "Devos/runtime")
+          from mason_execution import compute_change_digest
+          print(compute_change_digest(Path("/tmp/devos-mason-repo"), os.environ["BASE"], os.environ["CANDIDATE"]))
+          PY
+          )
+          git -C /tmp/devos-mason-repo reset --hard "$BASE"
+          python - <<'PY'
+          import json, os, sqlite3
+          db = "/tmp/devos-knowledge.db"
+          connection = sqlite3.connect(db)
+          try:
+              capability_id = connection.execute(
+                  "SELECT capability_id FROM learning_capabilities ORDER BY capability_id LIMIT 1"
+              ).fetchone()[0]
+              envelope_id = "promotion-envelope:mason-cli-fixture"
+              decision_id = "promotion-decision:mason-cli-fixture"
+              envelope = {
+                  "schema_version": 1,
+                  "envelope_id": envelope_id,
+                  "candidate_revision": os.environ["CANDIDATE"],
+                  "change_digest": os.environ["DIGEST"],
+                  "target": {
+                      "repository": "owner/fixture",
+                      "branch": "main",
+                      "paths": ["src/value.txt"],
+                      "change_ref": f"git:{os.environ['CANDIDATE']}"
+                  },
+                  "required_authorization": "reviewed repository change",
+                  "stone_state": "LOCKED",
+                  "mason_state": "HANDOFF_REQUIRED",
+                  "write_authorized": False
+              }
+              decision = {
+                  "schema_version": 1,
+                  "decision_id": decision_id,
+                  "envelope_id": envelope_id,
+                  "candidate_revision": os.environ["CANDIDATE"],
+                  "outcome": "PROMOTE",
+                  "next_action": "MASON_REVIEW_PROMOTION",
+                  "write_authorized": False
+              }
+              canon = lambda value: json.dumps(value, sort_keys=True, separators=(",", ":"))
+              connection.execute(
+                  "INSERT INTO promotion_envelopes(envelope_id,capability_id,branch_scope,candidate_revision,change_digest,stone_state,mason_state,payload_json,observed_at,authority_effect,write_authorized) VALUES (?,?,?,?,?,?,?,?,?,?,0)",
+                  (envelope_id, capability_id, "feature-lantern", os.environ["CANDIDATE"], os.environ["DIGEST"], "LOCKED", "HANDOFF_REQUIRED", canon(envelope), "2026-09-13T23:47:00+00:00", "NONE")
+              )
+              connection.execute(
+                  "INSERT INTO promotion_decisions(decision_id,envelope_id,outcome,candidate_revision,verifier_digest,payload_json,observed_at,authority_effect,write_authorized) VALUES (?,?,?,?,?,?,?,?,0)",
+                  (decision_id, envelope_id, "PROMOTE", os.environ["CANDIDATE"], "f" * 64, canon(decision), "2026-09-13T23:48:00+00:00", "NONE")
+              )
+              request = {
+                  "observed_at": "2026-09-13T23:49:00+00:00",
+                  "base_revision": os.environ["BASE"],
+                  "authorization": {
+                      "authorization_id": "authorization:mason-cli-fixture",
+                      "source": "workflow-fixture",
+                      "actor": "workflow-fixture-reviewer",
+                      "observed_at": "2026-09-13T23:49:00+00:00",
+                      "grant": "MASON_FAST_FORWARD",
+                      "decision_id": decision_id,
+                      "envelope_id": envelope_id,
+                      "candidate_revision": os.environ["CANDIDATE"],
+                      "target_branch": "main",
+                      "scope": "reviewed repository change",
+                      "approved": True
+                  }
+              }
+              with open("/tmp/mason-execution-request.json", "w", encoding="utf-8") as handle:
+                  json.dump(request, handle, indent=2, sort_keys=True)
+              connection.commit()
+          finally:
+              connection.close()
+          PY
+          python Devos/runtime/mason_execution.py --db /tmp/devos-knowledge.db prepare \
+            --decision promotion-decision:mason-cli-fixture \
+            --repo-root /tmp/devos-mason-repo \
+            /tmp/mason-execution-request.json > /tmp/mason-plan.json
+          PLAN_ID=$(python - <<'PY'
+          import json
+          print(json.load(open("/tmp/mason-plan.json", encoding="utf-8"))["plan"]["plan_id"])
+          PY
+          )
+          python Devos/runtime/mason_execution.py --db /tmp/devos-knowledge.db apply \
+            --plan "$PLAN_ID" \
+            --repo-root /tmp/devos-mason-repo \
+            --observed-at 2026-09-13T23:50:00+00:00 > /tmp/mason-receipt.json
+          test "$(git -C /tmp/devos-mason-repo rev-parse HEAD)" = "$CANDIDATE"
+          python - <<'PY'
+          import json, os
+          receipt = json.load(open("/tmp/mason-receipt.json", encoding="utf-8"))["receipt"]
+          assert receipt["outcome"] == "APPLIED"
+          assert receipt["post_revision"] == os.environ["CANDIDATE"]
+          assert receipt["local_authority_effect"] == "LOCAL_GIT_REF_UPDATED"
+          assert receipt["remote_authority_effect"] == "NONE"
+          assert receipt["remote_write_performed"] is False
+          PY
+          python Devos/runtime/mason_execution.py --db /tmp/devos-knowledge.db list
