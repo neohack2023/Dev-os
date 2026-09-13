@@ -60,7 +60,19 @@ python Devos/runtime/learning_store.py \
   list --branch project-core
 ```
 
-11. Wire host CI to package validation plus applicable subsystem tests/build/packet/evidence/reflection/learning checks.
+11. Create and verify promotion envelopes only after transfer/regression gates pass:
+
+```bash
+python Devos/runtime/promotion_gate.py \
+  --db Devos/state/devos-knowledge.db \
+  propose path/to/promotion-request.json
+
+python Devos/runtime/promotion_gate.py \
+  --db Devos/state/devos-knowledge.db \
+  verify --envelope <promotion-envelope-id> path/to/promotion-verification.json
+```
+
+12. Wire host CI to package validation plus applicable subsystem tests/build/packet/evidence/reflection/learning/promotion checks.
 
 ## Package-owned vs instance-owned
 
@@ -72,7 +84,7 @@ Receipts and runtime databases are host state. They must not be copied from one 
 
 ## Knowledge DB rebuild boundary
 
-A normal knowledge DB build replaces only repository-derived projection tables and preserves durable runtime-owned state such as `runtime_kv`, evidence tables, reflection candidates, learning procedures, evaluations, experiences, capabilities, and capability lifecycle events. Use `build --fresh` only when destructive reset is intended.
+A normal knowledge DB build replaces only repository-derived projection tables and preserves durable runtime-owned state such as `runtime_kv`, evidence tables, reflection candidates, learning procedures, evaluations, experiences, capabilities, capability lifecycle events, promotion envelopes, and promotion decisions. Use `build --fresh` only when destructive reset is intended.
 
 ## Knowledge runtime boundary
 
@@ -121,6 +133,18 @@ Candidate memory types are episodic, semantic, procedural, and negative. Exact r
 
 All learning outputs retain `authority_effect: NONE` and `promotion_state: CANDIDATE_ONLY`. Learning may nominate reusable procedures or capabilities but may not mutate repository canon or bypass STONE -> MASON.
 
+## Promotion boundary
+
+Promotion is a verifier-gated handoff, not a repository mutation.
+
+A promotion request must resolve to a stored capability whose latest evaluation passed T3 held-out transfer and T4 regression safety. The locked STONE envelope captures its procedure/reflection/evidence lineage, exact candidate Git SHA, change SHA-256, repository target, bounded paths, expected benefit, regression risk, falsification test, rollback plan, verifier policy, and required authorization.
+
+Every verifier artifact is bound to the exact candidate revision. Required checks match both name and verifier source. When configured, independent review cannot be self-review and canary verification must come from the configured canary source.
+
+The gate derives `PROMOTE`, `REVISE`, `ROLLBACK`, or `NO_OP`. `PROMOTE` and `ROLLBACK` only request MASON review. They do not authorize push, merge, deployment, canon mutation, or upstream sync. Host branch/ruleset/environment protections remain the execution authority.
+
+Promotion envelopes and decisions survive normal projection rebuilds and remain `CANDIDATE_ONLY`, `authority_effect: NONE`, and `write_authorized: false`.
+
 ## Validation boundary
 
 Normal validation checks that registered branch surfaces actually exist in the host repository. `repo_validator.py --skip-surface-checks validate` exists only for staged migrations.
@@ -129,4 +153,4 @@ Normal validation checks that registered branch surfaces actually exist in the h
 
 An upgrade may replace package-owned files. It must preserve instance-owned files unless an explicit migration declares and verifies a transformation.
 
-When a subsystem schema changes, migrate host state explicitly. Never silently rewrite a project's queue, evidence, reflection, learning, authority state, or runtime-owned database state during package upgrade.
+When a subsystem schema changes, migrate host state explicitly. Never silently rewrite a project's queue, evidence, reflection, learning, promotion, authority state, or runtime-owned database state during package upgrade.
