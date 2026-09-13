@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Portable SQLite runtime policy for DevOS.
-
-The database is generated host state. Projection tables are rebuildable from
-checked-in repository inputs while runtime_kv is preserved across normal builds.
-"""
+"""Portable SQLite runtime policy and migrations for DevOS."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,9 +7,11 @@ import sqlite3
 
 DEVOS_ROOT = Path(__file__).resolve().parents[1]
 BASE_SCHEMA = DEVOS_ROOT / "schemas" / "runtime-db-v1.sql"
-CURRENT_SCHEMA_VERSION = 1
+MIGRATION_2 = DEVOS_ROOT / "schemas" / "runtime-db-v2.sql"
+CURRENT_SCHEMA_VERSION = 2
 BUSY_TIMEOUT_MS = 5000
 MIGRATION_1_SIGNATURE = "devos-runtime-db-v1:projection+fts+runtime-kv"
+MIGRATION_2_SIGNATURE = "devos-runtime-db-v2:evidence-roots+findings+triangulation+deltas"
 
 
 def _table_exists(connection: sqlite3.Connection, table: str) -> bool:
@@ -53,13 +51,22 @@ def _ensure_fts(connection: sqlite3.Connection) -> bool:
         return False
 
 
+def _record_migration(connection: sqlite3.Connection, version: int, signature: str) -> None:
+    row = connection.execute("SELECT signature FROM schema_migrations WHERE version=?", (version,)).fetchone()
+    if row is not None and row[0] != signature:
+        raise sqlite3.DatabaseError(f"schema migration signature mismatch at version {version}")
+    connection.execute(
+        "INSERT OR IGNORE INTO schema_migrations(version, signature) VALUES (?, ?)",
+        (version, signature),
+    )
+
+
 def ensure_schema(connection: sqlite3.Connection) -> None:
     connection.executescript(BASE_SCHEMA.read_text(encoding="utf-8"))
     _ensure_fts(connection)
-    connection.execute(
-        "INSERT OR IGNORE INTO schema_migrations(version, signature) VALUES (?, ?)",
-        (CURRENT_SCHEMA_VERSION, MIGRATION_1_SIGNATURE),
-    )
+    _record_migration(connection, 1, MIGRATION_1_SIGNATURE)
+    connection.executescript(MIGRATION_2.read_text(encoding="utf-8"))
+    _record_migration(connection, 2, MIGRATION_2_SIGNATURE)
     connection.execute(f"PRAGMA user_version = {CURRENT_SCHEMA_VERSION}")
     connection.commit()
 

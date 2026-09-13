@@ -1,0 +1,58 @@
+{
+  "episode_id": "EVIDENCE-EP-001",
+  "branch_key": "feature-lantern",
+  "claim_key": "lantern.determinism",
+  "observed_at": "2026-09-13T22:55:00+00:00",
+  "current_claims": [
+    {
+      "claim_id": "claim-lantern-stable",
+      "claim_key": "lantern.determinism",
+      "value": "lantern state is deterministic",
+      "lifecycle": "active"
+    }
+  ],
+  "roots": [
+    {
+      "root_id": "run-A",
+      "root_kind": "test_run",
+      "observation_question": "Is lantern state deterministic?",
+      "input_identity": "fixture-A",
+      "execution_identity": "python-3.12",
+      "source_revision": "fixture-rev-A",
+      "environment_identity": "ci-linux",
+      "provenance_refs": ["ci://run/A"]
+    },
+    {
+      "root_id": "run-B",
+      "root_kind": "test_run",
+      "observation_question": "Is lantern state deterministic on new inputs?",
+      "input_identity": "fixture-B",
+      "execution_identity": "python-3.12",
+      "source_revision": "fixture-rev-A",
+      "environment_identity": "ci-linux",
+      "provenance_refs": ["ci://run/B"]
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "finding-A",
+      "claim_key": "lantern.determinism",
+      "value": "lantern state is deterministic",
+      "evidence_ref": "ci://run/A/result",
+      "root_ids": ["run-A"],
+      "lineage_state": "INDEPENDENT_ROOT",
+      "shared_input_keys": [],
+      "related_claim_keys": []
+    },
+    {
+      "finding_id": "finding-B",
+      "claim_key": "lantern.determinism",
+      "value": "lantern state is deterministic",
+      "evidence_ref": "ci://run/B/result",
+      "root_ids": ["run-B"],
+      "lineage_state": "REPLICATION_NEW_INPUTS",
+      "shared_input_keys": [],
+      "related_claim_keys": []
+    }
+  ]
+}

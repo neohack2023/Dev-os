@@ -35,7 +35,7 @@ class KnowledgeDbTests(unittest.TestCase):
             connection = connect_runtime(db)
             try:
                 self.assertEqual(
-                    1,
+                    CURRENT_SCHEMA_VERSION,
                     connection.execute("SELECT count(*) FROM schema_migrations").fetchone()[0],
                 )
             finally:
