@@ -8,10 +8,12 @@ import sqlite3
 DEVOS_ROOT = Path(__file__).resolve().parents[1]
 BASE_SCHEMA = DEVOS_ROOT / "schemas" / "runtime-db-v1.sql"
 MIGRATION_2 = DEVOS_ROOT / "schemas" / "runtime-db-v2.sql"
-CURRENT_SCHEMA_VERSION = 2
+MIGRATION_3 = DEVOS_ROOT / "schemas" / "runtime-db-v3.sql"
+CURRENT_SCHEMA_VERSION = 3
 BUSY_TIMEOUT_MS = 5000
 MIGRATION_1_SIGNATURE = "devos-runtime-db-v1:projection+fts+runtime-kv"
 MIGRATION_2_SIGNATURE = "devos-runtime-db-v2:evidence-roots+findings+triangulation+deltas"
+MIGRATION_3_SIGNATURE = "devos-runtime-db-v3:reflection-candidates"
 
 
 def _table_exists(connection: sqlite3.Connection, table: str) -> bool:
@@ -52,7 +54,9 @@ def _ensure_fts(connection: sqlite3.Connection) -> bool:
 
 
 def _record_migration(connection: sqlite3.Connection, version: int, signature: str) -> None:
-    row = connection.execute("SELECT signature FROM schema_migrations WHERE version=?", (version,)).fetchone()
+    row = connection.execute(
+        "SELECT signature FROM schema_migrations WHERE version=?", (version,)
+    ).fetchone()
     if row is not None and row[0] != signature:
         raise sqlite3.DatabaseError(f"schema migration signature mismatch at version {version}")
     connection.execute(
@@ -67,6 +71,8 @@ def ensure_schema(connection: sqlite3.Connection) -> None:
     _record_migration(connection, 1, MIGRATION_1_SIGNATURE)
     connection.executescript(MIGRATION_2.read_text(encoding="utf-8"))
     _record_migration(connection, 2, MIGRATION_2_SIGNATURE)
+    connection.executescript(MIGRATION_3.read_text(encoding="utf-8"))
+    _record_migration(connection, 3, MIGRATION_3_SIGNATURE)
     connection.execute(f"PRAGMA user_version = {CURRENT_SCHEMA_VERSION}")
     connection.commit()
 
@@ -85,7 +91,9 @@ def connect_runtime(path: Path) -> sqlite3.Connection:
 
 def runtime_health(connection: sqlite3.Connection) -> dict[str, object]:
     return {
-        "schema_version": connection.execute("SELECT max(version) FROM schema_migrations").fetchone()[0] or 0,
+        "schema_version": connection.execute(
+            "SELECT max(version) FROM schema_migrations"
+        ).fetchone()[0] or 0,
         "user_version": connection.execute("PRAGMA user_version").fetchone()[0],
         "journal_mode": connection.execute("PRAGMA journal_mode").fetchone()[0],
         "foreign_keys": bool(connection.execute("PRAGMA foreign_keys").fetchone()[0]),

@@ -1,0 +1,16 @@
+{
+  "branch_key": "feature-lantern",
+  "expected_behavior": "lantern state remains deterministic across independent inputs",
+  "mechanism_hypothesis": "the lantern state transition is independent of fixture identity",
+  "evidence_for": [
+    "ci://run/A/result",
+    "ci://run/B/result"
+  ],
+  "evidence_against": [],
+  "alternative_explanations": [
+    "both fixtures accidentally exercise the same hidden state path"
+  ],
+  "predicted_consequence": "a third fixture with distinct input identity will preserve the same deterministic state transition",
+  "required_disconfirmation_test": "run a third fixture with a novel input identity and fail the hypothesis if the state transition diverges",
+  "proposed_scope": "feature-lantern deterministic state transition only"
+}
