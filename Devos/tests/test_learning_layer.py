@@ -37,10 +37,10 @@ class LearningLayerTests(unittest.TestCase):
           "capability":{"capability_key":"lantern.stability","description":"Recognize deterministic lantern state across unseen inputs.","known_tasks":["lantern stability"],"known_failure_modes":["hidden mutable ordering"]},
           "experience":{"memory_type":"PROCEDURAL","statement":"Lantern stability procedure transferred to a held-out input and passed regression plus canary checks."}
         }
-    def test_schema_v5_and_learning_admission(self):
+    def test_schema_v6_and_learning_admission(self):
         db,c,r=self.make_context()
         try:
-            self.assertEqual(5,CURRENT_SCHEMA_VERSION)
+            self.assertEqual(6,CURRENT_SCHEMA_VERSION)
             out=admit_bundle(c,self.bundle(r))
             self.assertEqual("TRANSFER",out["maturity_stage"]); self.assertTrue(out["validated_for_transfer"]); self.assertTrue(out["regression_safe"]); self.assertTrue(out["canary_validated"]); self.assertEqual("NONE",out["authority_effect"])
         finally:c.close()
