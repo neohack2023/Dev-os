@@ -32,10 +32,17 @@ python Devos/runtime/knowledge_runtime.py status
 python Devos/runtime/knowledge_runtime.py packet "search terms" --branch project-core
 ```
 
-Add repeated `--branch` flags when a task legitimately crosses branch boundaries. The runtime resolves dependencies automatically. Use `--refresh` only when you intentionally want to rebuild an existing projection before retrieval.
+10. Admit evidence only from explicit evidence-episode JSON:
 
-10. Wire host CI to `python Devos/runtime/devos.py validate` plus the applicable subsystem tests/build/packet checks.
-11. Add host-specific tools, authority adapters, and memory connectors through governed changes rather than editing distribution defaults ad hoc.
+```bash
+python Devos/runtime/evidence_store.py admit path/to/evidence-episode.json
+python Devos/runtime/evidence_store.py list --branch project-core
+```
+
+Evidence admission requires a currently registered branch and explicit `observed_at`. Root/finding identities become immutable durable runtime state after admission.
+
+11. Wire host CI to `python Devos/runtime/devos.py validate` plus applicable subsystem tests/build/packet/evidence checks.
+12. Add host-specific tools, authority adapters, and memory connectors through governed changes rather than editing distribution defaults ad hoc.
 
 ## Package-owned vs instance-owned
 
@@ -47,13 +54,19 @@ Receipts and runtime databases are host state. They must not be copied from one 
 
 ## Knowledge DB rebuild boundary
 
-A normal knowledge DB build replaces only repository-derived projection tables and preserves runtime-owned tables such as `runtime_kv`. Use `build --fresh` only when destructive reset is intended. The logical `projection_digest` is the determinism signal; SQLite file bytes and WAL layout are not treated as canonical artifacts.
+A normal knowledge DB build replaces only repository-derived projection tables and preserves runtime-owned tables such as `runtime_kv` and evidence tables. Use `build --fresh` only when destructive reset is intended. The logical `projection_digest` is the determinism signal; SQLite file bytes and WAL layout are not canonical artifacts.
 
 ## Knowledge runtime boundary
 
-Context packet generation is read-only against an existing projection. It reports source drift through `projection.fresh` and `changed_sources`; it does not silently rebuild stale state. A missing database may be generated because no prior projection exists. Pass `--refresh` explicitly to rebuild an existing database before packet generation.
+Context packet generation is read-only against an existing projection. It reports source drift and does not silently rebuild stale state. Pass `--refresh` explicitly to rebuild an existing database before retrieval.
 
-Packets are bounded retrieval products, not authority objects. Their source manifest and packet hash make the selected context auditable, but authority remains with the checked-in repository sources.
+Packets are bounded retrieval products, not authority objects.
+
+## Evidence boundary
+
+Evidence is durable runtime state, not a projection and not authority. Never add database foreign keys from durable evidence rows to rebuildable projection tables such as `branch_state`; validate those identities at admission time instead.
+
+Identical evidence replay is idempotent. Reusing a root or finding ID with different content is a hard conflict. Delta packets may request review but always retain `authority_effect: NONE`; promotion still goes through STONE -> MASON.
 
 ## Validation boundary
 
