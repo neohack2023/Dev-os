@@ -8,12 +8,14 @@ BASE_SCHEMA=DEVOS_ROOT/"schemas"/"runtime-db-v1.sql"
 MIGRATION_2=DEVOS_ROOT/"schemas"/"runtime-db-v2.sql"
 MIGRATION_3=DEVOS_ROOT/"schemas"/"runtime-db-v3.sql"
 MIGRATION_4=DEVOS_ROOT/"schemas"/"runtime-db-v4.sql"
-CURRENT_SCHEMA_VERSION=4
+MIGRATION_5=DEVOS_ROOT/"schemas"/"runtime-db-v5.sql"
+CURRENT_SCHEMA_VERSION=5
 BUSY_TIMEOUT_MS=5000
 MIGRATION_1_SIGNATURE="devos-runtime-db-v1:projection+fts+runtime-kv"
 MIGRATION_2_SIGNATURE="devos-runtime-db-v2:evidence-roots+findings+triangulation+deltas"
 MIGRATION_3_SIGNATURE="devos-runtime-db-v3:reflection-candidates"
 MIGRATION_4_SIGNATURE="devos-runtime-db-v4:learning-procedures+evaluations+experiences+capability-events"
+MIGRATION_5_SIGNATURE="devos-runtime-db-v5:promotion-envelopes+verification-decisions"
 def _table_exists(connection,table): return connection.execute("SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name=?",(table,)).fetchone() is not None
 def _ensure_fts(connection):
     if _table_exists(connection,"documents_fts"): return True
@@ -36,6 +38,7 @@ def ensure_schema(connection):
     connection.executescript(MIGRATION_2.read_text()); _record_migration(connection,2,MIGRATION_2_SIGNATURE)
     connection.executescript(MIGRATION_3.read_text()); _record_migration(connection,3,MIGRATION_3_SIGNATURE)
     connection.executescript(MIGRATION_4.read_text()); _record_migration(connection,4,MIGRATION_4_SIGNATURE)
+    connection.executescript(MIGRATION_5.read_text()); _record_migration(connection,5,MIGRATION_5_SIGNATURE)
     connection.execute(f"PRAGMA user_version={CURRENT_SCHEMA_VERSION}"); connection.commit()
 def connect_runtime(path:Path):
     path=Path(path); path.parent.mkdir(parents=True,exist_ok=True); c=sqlite3.connect(path); c.row_factory=sqlite3.Row
