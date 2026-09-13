@@ -4,7 +4,7 @@ import argparse, hashlib, importlib.util, json
 from pathlib import Path
 from typing import Any
 
-PACKAGE_VERSION = "0.5.0"
+PACKAGE_VERSION = "0.6.0"
 INSTANCE_FILES = (
     "project.json", "branches.jsonl", "tasks.jsonl", "task-events.jsonl",
     "opportunities.jsonl", "tools.jsonl", "governance-lock.json", "research-policy.json",
@@ -31,19 +31,16 @@ def init_instance(devos_root: Path, scope: str, repository: str, project_name: s
     template = _read_json(devos_root / "templates" / "project.json")
     template.update({"project_name": project_name, "scope_key": scope, "repository": repository, "devos_version": PACKAGE_VERSION})
     _write_json(devos_root / "project.json", template, force)
-
     branch_template = (devos_root / "templates" / "branches.jsonl").read_text(encoding="utf-8")
     branch_path = devos_root / "branches.jsonl"
     if branch_path.exists() and not force:
         raise FileExistsError(f"refusing to overwrite {branch_path}")
     branch_path.write_text(branch_template.replace("__SCOPE__", scope), encoding="utf-8")
-
     for name in ("tasks.jsonl", "task-events.jsonl", "opportunities.jsonl", "tools.jsonl"):
         path = devos_root / name
         if path.exists() and not force:
             raise FileExistsError(f"refusing to overwrite {path}")
         path.write_text("", encoding="utf-8")
-
     research = _read_json(devos_root / "templates" / "research-policy.json")
     _write_json(devos_root / "research-policy.json", research, force)
     governance = {
@@ -63,16 +60,16 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
         "README.md", "AGENTS.md", "VERSION", "manifest.json", "PORTING.md",
         "runtime/devos.py", "runtime/task_queue.py", "runtime/repo_validator.py",
         "runtime/db_runtime.py", "runtime/build_knowledge_db.py", "runtime/knowledge_runtime.py",
+        "runtime/evidence_runtime.py", "runtime/evidence_store.py",
         "templates/project.json", "templates/branches.jsonl",
         "contracts/STONE.md", "contracts/MASON.md", "contracts/SELF_IMPROVEMENT.md",
         "contracts/TASK_QUEUE.md", "contracts/REPO_VALIDATION.md", "contracts/RUNTIME_DB.md",
-        "contracts/KNOWLEDGE_RUNTIME.md",
+        "contracts/KNOWLEDGE_RUNTIME.md", "contracts/EVIDENCE_RUNTIME.md",
         "schemas/task.schema.json", "schemas/task-event.schema.json", "schemas/runtime-db-v1.sql",
-        "schemas/context-packet.schema.json",
+        "schemas/runtime-db-v2.sql", "schemas/context-packet.schema.json", "schemas/evidence-episode.schema.json",
         "tests/test_task_queue.py", "tests/test_repo_validator.py", "tests/test_knowledge_db.py",
-        "tests/test_knowledge_runtime.py",
-        "tests/fixtures/task_queue/tasks.jsonl",
-        "tests/fixtures/task_queue/task-events.jsonl",
+        "tests/test_knowledge_runtime.py", "tests/test_evidence_runtime.py",
+        "tests/fixtures/task_queue/tasks.jsonl", "tests/fixtures/task_queue/task-events.jsonl",
         "tests/fixtures/task_queue/branches.jsonl",
         "tests/fixtures/repo_validator/host/Devos/project.json",
         "tests/fixtures/repo_validator/host/Devos/governance-lock.json",
@@ -88,8 +85,9 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
         "tests/fixtures/knowledge_db/host/Devos/tasks.jsonl",
         "tests/fixtures/knowledge_db/host/Devos/task-events.jsonl",
         "tests/fixtures/knowledge_db/host/Devos/tools.jsonl",
+        "tests/fixtures/evidence/episode-convergence.json",
         "checkpoints/KNOWLEDGE_DB_PORT_01.md", "checkpoints/KNOWLEDGE_RUNTIME_PORT_01.md",
-        "state/.gitignore",
+        "checkpoints/EVIDENCE_RUNTIME_PORT_01.md", "state/.gitignore",
     ]
     for rel in required:
         if not (devos_root / rel).is_file():
