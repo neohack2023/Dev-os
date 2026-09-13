@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, json, sqlite3, sys
+import argparse, json, sqlite3, sys, hashlib
 from dataclasses import asdict
 from pathlib import Path
 try:
@@ -59,23 +59,31 @@ def admit_bundle(connection,bundle):
         for rid in procedure.source_reflection_ids:
             connection.execute("INSERT OR IGNORE INTO procedure_reflections(procedure_id,reflection_id) VALUES (?,?)",(procedure.procedure_id,rid))
         eval_payload={"procedure_id":report.procedure_id,"results":[{**asdict(r),"tier":r.tier.value} for r in report.results],"validated_for_transfer":report.validated_for_transfer,"regression_safe":report.regression_safe,"canary_validated":report.canary_validated,"authority_effect":"NONE","promotion_state":"CANDIDATE_ONLY"}
-        evaluation_id="evaluation:"+__import__("hashlib").sha256(_canon(eval_payload).encode()).hexdigest()[:24]
+        evaluation_id="evaluation:"+hashlib.sha256(_canon(eval_payload).encode()).hexdigest()[:24]
         _immutable(connection,"learning_evaluations","evaluation_id",evaluation_id,eval_payload)
         connection.execute("INSERT OR IGNORE INTO evaluation_procedures(evaluation_id,procedure_id) VALUES (?,?)",(evaluation_id,procedure.procedure_id))
         _immutable(connection,"learning_experiences","memory_id",experience.memory_id,{**asdict(experience),"memory_type":experience.memory_type.value})
         for rid in experience.source_reflection_ids:
             connection.execute("INSERT OR IGNORE INTO experience_reflections(memory_id,reflection_id) VALUES (?,?)",(experience.memory_id,rid))
         cap_payload={**asdict(capability),"maturity_stage":capability.maturity_stage.value}
-        row=connection.execute("SELECT event_id,event_sequence FROM learning_capability_events WHERE capability_id=? ORDER BY event_sequence DESC LIMIT 1",(capability.capability_id,)).fetchone()
-        seq=(row["event_sequence"]+1) if row else 1; pred=row["event_id"] if row else ""
-        event_payload={"capability":cap_payload,"evaluation_id":evaluation_id,"observed_at":observed_at,"event_sequence":seq,"predecessor_event_id":pred,"authority_effect":"NONE","promotion_state":"CANDIDATE_ONLY"}
-        event_id="capability-event:"+__import__("hashlib").sha256(_canon(event_payload).encode()).hexdigest()[:24]
-        connection.execute("INSERT OR REPLACE INTO learning_capabilities(capability_id,payload_json) VALUES (?,?)",(capability.capability_id,_canon(cap_payload)))
-        connection.execute("INSERT INTO learning_capability_events(event_id,capability_id,event_sequence,observed_at,predecessor_event_id,payload_json) VALUES (?,?,?,?,?,?)",(event_id,capability.capability_id,seq,observed_at,pred,_canon(event_payload)))
+        connection.execute("INSERT INTO learning_capabilities(capability_id,payload_json) VALUES (?,?) ON CONFLICT(capability_id) DO UPDATE SET payload_json=excluded.payload_json",(capability.capability_id,_canon(cap_payload)))
+        previous=connection.execute("SELECT event_id,event_sequence,payload_json FROM learning_capability_events WHERE capability_id=? ORDER BY event_sequence DESC LIMIT 1",(capability.capability_id,)).fetchone()
+        event_state={"capability":cap_payload,"evaluation_id":evaluation_id,"observed_at":observed_at,"authority_effect":"NONE","promotion_state":"CANDIDATE_ONLY"}
+        replayed=False
+        if previous is not None:
+            prior=json.loads(previous["payload_json"])
+            prior_state={k:prior.get(k) for k in event_state}
+            if prior_state==event_state:
+                event_id=previous["event_id"]; replayed=True
+        if not replayed:
+            seq=(previous["event_sequence"]+1) if previous else 1; pred=previous["event_id"] if previous else ""
+            event_payload={**event_state,"event_sequence":seq,"predecessor_event_id":pred}
+            event_id="capability-event:"+hashlib.sha256(_canon(event_payload).encode()).hexdigest()[:24]
+            connection.execute("INSERT INTO learning_capability_events(event_id,capability_id,event_sequence,observed_at,predecessor_event_id,payload_json) VALUES (?,?,?,?,?,?)",(event_id,capability.capability_id,seq,observed_at,pred,_canon(event_payload)))
         connection.commit()
     except Exception:
         connection.rollback(); raise
-    return {"procedure_id":procedure.procedure_id,"evaluation_id":evaluation_id,"memory_id":experience.memory_id,"capability_id":capability.capability_id,"maturity_stage":capability.maturity_stage.value,"validated_for_transfer":report.validated_for_transfer,"regression_safe":report.regression_safe,"canary_validated":report.canary_validated,"authority_effect":"NONE","promotion_state":"CANDIDATE_ONLY"}
+    return {"procedure_id":procedure.procedure_id,"evaluation_id":evaluation_id,"memory_id":experience.memory_id,"capability_id":capability.capability_id,"capability_event_id":event_id,"replayed":replayed,"maturity_stage":capability.maturity_stage.value,"validated_for_transfer":report.validated_for_transfer,"regression_safe":report.regression_safe,"canary_validated":report.canary_validated,"authority_effect":"NONE","promotion_state":"CANDIDATE_ONLY"}
 
 def list_learning(connection,branch=None):
     procedures=[]
