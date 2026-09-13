@@ -73,7 +73,7 @@ def admit_bundle(connection,bundle):
         if previous is not None:
             prior=json.loads(previous["payload_json"])
             prior_state={k:prior.get(k) for k in event_state}
-            if prior_state==event_state:
+            if _canon(prior_state)==_canon(event_state):
                 event_id=previous["event_id"]; replayed=True
         if not replayed:
             seq=(previous["event_sequence"]+1) if previous else 1; pred=previous["event_id"] if previous else ""
