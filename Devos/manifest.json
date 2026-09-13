@@ -1,6 +1,6 @@
 {
   "name": "DevOS",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "portable_root": "Devos",
   "origin": {
     "repository": "neohack2023/project-orath",
@@ -8,6 +8,14 @@
     "source_tree_sha": "5be8163a880fb77b2b4984d8b36472c3c5134fbf",
     "source_repo_tree_sha": "340e69d2156229188208cb4c5c181da7525175e9"
   },
+  "neutralized_subsystems": [
+    {
+      "key": "task_queue",
+      "checkpoint": "TASK_QUEUE_PORT_01",
+      "runtime": "runtime/task_queue.py",
+      "source_blob": "1121c0bd8673c64f7446aa2296fec9998527db06"
+    }
+  ],
   "generated_instance_files": [
     "project.json",
     "branches.jsonl",
