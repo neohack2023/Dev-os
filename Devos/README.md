@@ -1,6 +1,6 @@
 # DevOS Portable Package
 
-DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, immutable local evidence, evidence-bounded reflection candidates, transfer-tested candidate capabilities, and an exact-revision promotion gate that live with the code they serve.
+DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, immutable local evidence, evidence-bounded reflection candidates, transfer-tested candidate capabilities, exact-revision promotion gates, and bounded local MASON execution that live with the code they serve.
 
 Everything owned by the package lives under `Devos/` so the folder can be copied into another repository intact.
 
@@ -122,6 +122,30 @@ A `PROMOTE` result means only "eligible for MASON review/handoff." It never gran
 
 See `contracts/PROMOTION_GATE.md` and checkpoint `checkpoints/PROMOTION_GATE_PORT_01.md`.
 
+### MASON execution
+
+```bash
+python Devos/runtime/mason_execution.py --db Devos/state/devos-knowledge.db \
+  prepare --decision <promotion-decision-id> --repo-root . \
+  path/to/mason-execution-request.json
+
+python Devos/runtime/mason_execution.py --db Devos/state/devos-knowledge.db \
+  apply --plan <mason-plan-id> --repo-root . \
+  --observed-at <timestamp>
+
+python Devos/runtime/mason_execution.py --db Devos/state/devos-knowledge.db list
+```
+
+MASON execution consumes only a verified `PROMOTE` handoff plus explicit `MASON_FAST_FORWARD` authorization. It re-verifies the exact base revision, candidate revision, fast-forward ancestry, target branch, exact changed-path set, and the canonical `sha256-git-diff-v1` digest before mutation.
+
+The only write primitive in this slice is a local `git merge --ff-only --no-edit <candidate>`. Hooks are disabled for MASON Git operations, global/system Git configuration is ignored, and repositories with active local smudge/process filter commands are refused. Dirty worktrees, detached HEAD state, path escape, digest drift, and authorization mismatch all fail closed.
+
+After the fast-forward, MASON independently verifies HEAD, branch, worktree cleanliness, changed paths, diff digest, and resulting tree SHA before emitting `APPLIED`. A failed execution emits one immutable `FAILED` receipt and is not silently retried. Exact replay of an applied plan returns the original receipt without running Git again.
+
+This executor is local-only. It does not push, merge on GitHub, deploy, bypass rulesets, or claim remote authority. Successful receipts record `local_authority_effect: LOCAL_GIT_REF_UPDATED`, `remote_authority_effect: NONE`, and `remote_write_performed: false`.
+
+See `contracts/MASON_EXECUTION.md`, `schemas/mason-execution-request.schema.json`, and checkpoint `checkpoints/MASON_EXECUTION_PORT_01.md`.
+
 ## Core law
 
 - GitHub owns live repository execution truth.
@@ -132,6 +156,8 @@ See `contracts/PROMOTION_GATE.md` and checkpoint `checkpoints/PROMOTION_GATE_POR
 - Reflection may nominate improvements but cannot self-promote them.
 - Learning requires transfer evidence and cannot self-promote.
 - Promotion decisions bind to exact candidate revisions and still do not authorize writes.
+- MASON may execute only an explicitly authorized, declared local fast-forward and must verify it again afterward.
+- A local MASON receipt never claims remote GitHub authority.
 - Repetition/prevalence never upgrades authority by itself.
 - Ordinary repo work must remain possible from the checked-in local bundle.
 
