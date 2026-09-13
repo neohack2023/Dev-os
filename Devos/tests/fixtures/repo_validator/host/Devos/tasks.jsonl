@@ -1,0 +1,1 @@
+{"task_id":"DEV-001","title":"Fixture task","priority":1,"status":"READY","branch_keys":["project-core"],"task_type":"repository_execution","owner_role":"DEVOS-ORCHESTRATOR","assigned_agent":null,"dependencies":[],"tracking":[],"objective":"Prove validator fixture","acceptance_criteria":["validator passes"],"transfer_canary":false,"evidence_refs":[]}

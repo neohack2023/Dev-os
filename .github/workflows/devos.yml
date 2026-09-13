@@ -19,3 +19,5 @@ jobs:
         run: python -m unittest discover -s Devos/tests -v
       - name: Validate task queue fixture
         run: python Devos/runtime/task_queue.py --devos-root Devos/tests/fixtures/task_queue validate
+      - name: Validate repository fixture
+        run: python Devos/runtime/repo_validator.py --devos-root Devos/tests/fixtures/repo_validator/host/Devos --host-root Devos/tests/fixtures/repo_validator/host validate

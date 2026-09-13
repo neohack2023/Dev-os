@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json
+import argparse, hashlib, importlib.util, json
 from pathlib import Path
 from typing import Any
 
-PACKAGE_VERSION = "0.2.0"
+PACKAGE_VERSION = "0.3.0"
 INSTANCE_FILES = (
     "project.json", "branches.jsonl", "tasks.jsonl", "task-events.jsonl",
     "opportunities.jsonl", "tools.jsonl", "governance-lock.json", "research-policy.json",
@@ -17,6 +17,14 @@ def _write_json(path: Path, data: dict[str, Any], force: bool = False) -> None:
     if path.exists() and not force:
         raise FileExistsError(f"refusing to overwrite {path}")
     path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+def _load_runtime_module(path: Path, name: str):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"unable to load runtime module {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 def init_instance(devos_root: Path, scope: str, repository: str, project_name: str, force: bool = False) -> None:
     devos_root = devos_root.resolve()
@@ -53,12 +61,21 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
     errors: list[str] = []
     required = [
         "README.md", "AGENTS.md", "VERSION", "manifest.json", "PORTING.md",
-        "runtime/devos.py", "runtime/task_queue.py",
+        "runtime/devos.py", "runtime/task_queue.py", "runtime/repo_validator.py",
         "templates/project.json", "templates/branches.jsonl",
-        "contracts/STONE.md", "contracts/MASON.md", "contracts/SELF_IMPROVEMENT.md", "contracts/TASK_QUEUE.md",
+        "contracts/STONE.md", "contracts/MASON.md", "contracts/SELF_IMPROVEMENT.md",
+        "contracts/TASK_QUEUE.md", "contracts/REPO_VALIDATION.md",
         "schemas/task.schema.json", "schemas/task-event.schema.json",
-        "tests/test_task_queue.py", "tests/fixtures/task_queue/tasks.jsonl",
-        "tests/fixtures/task_queue/task-events.jsonl", "tests/fixtures/task_queue/branches.jsonl",
+        "tests/test_task_queue.py", "tests/test_repo_validator.py",
+        "tests/fixtures/task_queue/tasks.jsonl",
+        "tests/fixtures/task_queue/task-events.jsonl",
+        "tests/fixtures/task_queue/branches.jsonl",
+        "tests/fixtures/repo_validator/host/Devos/project.json",
+        "tests/fixtures/repo_validator/host/Devos/governance-lock.json",
+        "tests/fixtures/repo_validator/host/Devos/branches.jsonl",
+        "tests/fixtures/repo_validator/host/Devos/tasks.jsonl",
+        "tests/fixtures/repo_validator/host/Devos/task-events.jsonl",
+        "tests/fixtures/repo_validator/host/Devos/tools.jsonl",
     ]
     for rel in required:
         if not (devos_root / rel).is_file():
@@ -80,6 +97,13 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
                         errors.append(f"project.json missing {key}")
             except Exception as exc:
                 errors.append(f"invalid project.json: {exc}")
+        validator_path = devos_root / "runtime" / "repo_validator.py"
+        if validator_path.is_file():
+            try:
+                validator = _load_runtime_module(validator_path, "devos_repo_validator")
+                errors.extend(validator.validate_repository(devos_root, devos_root.parent))
+            except (OSError, ValueError, json.JSONDecodeError, RuntimeError) as exc:
+                errors.append(f"repository validator failed to load: {exc}")
     return errors
 
 def fingerprint(devos_root: Path) -> str:
@@ -125,7 +149,7 @@ def main() -> int:
             print(json.dumps({"ok": True, "devos_version": PACKAGE_VERSION}, indent=2))
         else:
             print(json.dumps(status(root), indent=2, sort_keys=True))
-    except (FileExistsError, FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+    except (FileExistsError, FileNotFoundError, json.JSONDecodeError, ValueError, RuntimeError) as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, indent=2)); return 2
     return 0
 

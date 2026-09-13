@@ -1,0 +1,1 @@
+{"tool_key":"example-tool","repository":"example/tool","verified_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","usage_contract":"fixture only","maturity":"verified","capabilities":[{"name":"validate","scope":"fixture","languages":["python"],"qualification":"verified"}],"known_limits":["fixture"],"entrypoints":["tool.py"],"evidence":["fixture"],"last_verified":"2026-09-13"}

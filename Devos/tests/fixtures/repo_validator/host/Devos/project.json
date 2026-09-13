@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "project_name": "__PROJECT__",
-  "scope_key": "__SCOPE__",
-  "repository": "__REPOSITORY__",
+  "project_name": "Fixture Host",
+  "scope_key": "fixture-host",
+  "repository": "example/fixture-host",
   "devos_version": "0.3.0",
   "authority": {
     "repository_execution": "github",

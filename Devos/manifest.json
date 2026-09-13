@@ -1,6 +1,6 @@
 {
   "name": "DevOS",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "portable_root": "Devos",
   "origin": {
     "repository": "neohack2023/project-orath",
@@ -14,6 +14,12 @@
       "checkpoint": "TASK_QUEUE_PORT_01",
       "runtime": "runtime/task_queue.py",
       "source_blob": "1121c0bd8673c64f7446aa2296fec9998527db06"
+    },
+    {
+      "key": "repo_validator",
+      "checkpoint": "REPO_VALIDATOR_PORT_01",
+      "runtime": "runtime/repo_validator.py",
+      "source_blob": "ff70d5e5a12e3113df35f0642b3c855178bec28a"
     }
   ],
   "generated_instance_files": [
