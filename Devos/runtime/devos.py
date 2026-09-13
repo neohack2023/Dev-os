@@ -4,7 +4,7 @@ import argparse, hashlib, json
 from pathlib import Path
 from typing import Any
 
-PACKAGE_VERSION = "0.1.0"
+PACKAGE_VERSION = "0.2.0"
 INSTANCE_FILES = (
     "project.json", "branches.jsonl", "tasks.jsonl", "task-events.jsonl",
     "opportunities.jsonl", "tools.jsonl", "governance-lock.json", "research-policy.json",
@@ -53,8 +53,12 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
     errors: list[str] = []
     required = [
         "README.md", "AGENTS.md", "VERSION", "manifest.json", "PORTING.md",
-        "runtime/devos.py", "templates/project.json", "templates/branches.jsonl",
-        "contracts/STONE.md", "contracts/MASON.md", "contracts/SELF_IMPROVEMENT.md"
+        "runtime/devos.py", "runtime/task_queue.py",
+        "templates/project.json", "templates/branches.jsonl",
+        "contracts/STONE.md", "contracts/MASON.md", "contracts/SELF_IMPROVEMENT.md", "contracts/TASK_QUEUE.md",
+        "schemas/task.schema.json", "schemas/task-event.schema.json",
+        "tests/test_task_queue.py", "tests/fixtures/task_queue/tasks.jsonl",
+        "tests/fixtures/task_queue/task-events.jsonl", "tests/fixtures/task_queue/branches.jsonl",
     ]
     for rel in required:
         if not (devos_root / rel).is_file():
