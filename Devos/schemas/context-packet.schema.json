@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DevOS Context Packet",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope_key",
+    "repository",
+    "query",
+    "requested_branches",
+    "resolved_branches",
+    "projection",
+    "limits",
+    "context",
+    "source_manifest",
+    "document_chars_used",
+    "packet_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scope_key": {"type": ["string", "null"]},
+    "repository": {"type": ["string", "null"]},
+    "project_name": {"type": ["string", "null"]},
+    "query": {"type": "string", "minLength": 1},
+    "requested_branches": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "resolved_branches": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "projection": {
+      "type": "object",
+      "required": ["digest", "fresh", "checked_sources", "changed_sources"],
+      "properties": {
+        "digest": {"type": ["string", "null"]},
+        "fresh": {"type": "boolean"},
+        "checked_sources": {"type": "integer", "minimum": 0},
+        "changed_sources": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "limits": {"type": "object"},
+    "context": {
+      "type": "object",
+      "required": ["branches", "documents", "tasks", "tools"],
+      "properties": {
+        "branches": {"type": "array"},
+        "documents": {"type": "array"},
+        "tasks": {"type": "array"},
+        "tools": {"type": "array"}
+      },
+      "additionalProperties": false
+    },
+    "source_manifest": {"type": "array"},
+    "document_chars_used": {"type": "integer", "minimum": 0},
+    "packet_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}
