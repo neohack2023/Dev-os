@@ -72,7 +72,21 @@ python Devos/runtime/promotion_gate.py \
   verify --envelope <promotion-envelope-id> path/to/promotion-verification.json
 ```
 
-12. Wire host CI to package validation plus applicable subsystem tests/build/packet/evidence/reflection/learning/promotion checks.
+12. Prepare and apply a local MASON fast-forward only after a verified `PROMOTE` handoff and explicit authorization:
+
+```bash
+python Devos/runtime/mason_execution.py \
+  --db Devos/state/devos-knowledge.db \
+  prepare --decision <promotion-decision-id> --repo-root . \
+  path/to/mason-execution-request.json
+
+python Devos/runtime/mason_execution.py \
+  --db Devos/state/devos-knowledge.db \
+  apply --plan <mason-plan-id> --repo-root . \
+  --observed-at <timestamp>
+```
+
+13. Wire host CI to package validation plus applicable subsystem tests/build/packet/evidence/reflection/learning/promotion/MASON checks.
 
 ## Package-owned vs instance-owned
 
@@ -84,7 +98,7 @@ Receipts and runtime databases are host state. They must not be copied from one 
 
 ## Knowledge DB rebuild boundary
 
-A normal knowledge DB build replaces only repository-derived projection tables and preserves durable runtime-owned state such as `runtime_kv`, evidence tables, reflection candidates, learning procedures, evaluations, experiences, capabilities, capability lifecycle events, promotion envelopes, and promotion decisions. Use `build --fresh` only when destructive reset is intended.
+A normal knowledge DB build replaces only repository-derived projection tables and preserves durable runtime-owned state such as `runtime_kv`, evidence tables, reflection candidates, learning procedures, evaluations, experiences, capabilities, capability lifecycle events, promotion envelopes/decisions, and MASON execution plans/receipts. Use `build --fresh` only when destructive reset is intended.
 
 ## Knowledge runtime boundary
 
@@ -143,7 +157,32 @@ Every verifier artifact is bound to the exact candidate revision. Required check
 
 The gate derives `PROMOTE`, `REVISE`, `ROLLBACK`, or `NO_OP`. `PROMOTE` and `ROLLBACK` only request MASON review. They do not authorize push, merge, deployment, canon mutation, or upstream sync. Host branch/ruleset/environment protections remain the execution authority.
 
+For executable local MASON candidates, use the canonical `sha256-git-diff-v1` digest documented in `contracts/MASON_EXECUTION.md`. MASON supplies and verifies the exact base revision; the promotion gate does not guess it.
+
 Promotion envelopes and decisions survive normal projection rebuilds and remain `CANDIDATE_ONLY`, `authority_effect: NONE`, and `write_authorized: false`.
+
+## MASON execution boundary
+
+MASON execution is a bounded local Git mutation, not remote repository authority.
+
+Preparation requires a stored `PROMOTE` decision, locked STONE envelope, exact base revision, and explicit `MASON_FAST_FORWARD` authorization whose decision/envelope/candidate/branch/scope fields match the handoff exactly. Before persisting a plan, MASON verifies:
+
+- current HEAD equals the authorized base revision,
+- the current branch equals the locked target branch,
+- the worktree is clean,
+- the candidate exists locally and is a fast-forward descendant,
+- the candidate changed-path set exactly equals the locked target paths,
+- the canonical Git diff digest exactly equals the locked `change_digest`.
+
+MASON Git commands disable repository hooks, ignore global/system Git configuration, and refuse active local `filter.*.smudge` / `filter.*.process` commands. The executor does not run candidate-provided commands or caller-provided patches.
+
+The only mutation primitive in this slice is `git merge --ff-only --no-edit <candidate>`. Apply repeats preflight immediately before mutation and independently verifies the branch, HEAD, worktree, changed paths, digest, and tree SHA afterward.
+
+One plan produces at most one immutable receipt. A successful replay returns the original receipt without executing Git again. A failed apply writes a single `FAILED` receipt and is not silently retried; issue a new governed plan after the failure is understood.
+
+The receipt records the base revision as the rollback target, but this slice never force-resets history backward automatically.
+
+Most importantly, a local `APPLIED` receipt is not a GitHub write. MASON records `remote_authority_effect: NONE` and `remote_write_performed: false`. Pushing/merging remotely requires a separate adapter that re-verifies the receipt and obeys the host repository's protection, review, status-check, environment, and merge rules.
 
 ## Validation boundary
 
@@ -153,4 +192,4 @@ Normal validation checks that registered branch surfaces actually exist in the h
 
 An upgrade may replace package-owned files. It must preserve instance-owned files unless an explicit migration declares and verifies a transformation.
 
-When a subsystem schema changes, migrate host state explicitly. Never silently rewrite a project's queue, evidence, reflection, learning, promotion, authority state, or runtime-owned database state during package upgrade.
+When a subsystem schema changes, migrate host state explicitly. Never silently rewrite a project's queue, evidence, reflection, learning, promotion, MASON execution, authority state, or runtime-owned database state during package upgrade.
