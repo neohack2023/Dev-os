@@ -30,3 +30,7 @@ jobs:
         run: |
           python Devos/runtime/knowledge_runtime.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db status
           python Devos/runtime/knowledge_runtime.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db packet lantern --branch feature-lantern --max-document-chars 4000
+      - name: Admit and inspect evidence fixture
+        run: |
+          python Devos/runtime/evidence_store.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db admit Devos/tests/fixtures/evidence/episode-convergence.json
+          python Devos/runtime/evidence_store.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db list --branch feature-lantern
