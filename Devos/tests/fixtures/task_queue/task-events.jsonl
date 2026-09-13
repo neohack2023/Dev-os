@@ -1,0 +1,1 @@
+{"event_id":"DEVOS-EVENT-001","task_id":"DEVOS-TASK-001","status":"DONE","occurred_on":"2026-09-13T00:00:00Z","assigned_agent":"FIXTURE-AGENT","tracking_add":["fixture:commit-1"],"evidence_refs_add":["fixture:test-pass"]}
