@@ -96,3 +96,60 @@ jobs:
           PY
           python Devos/runtime/learning_store.py --db /tmp/devos-knowledge.db admit /tmp/learning-bundle.json
           python Devos/runtime/learning_store.py --db /tmp/devos-knowledge.db list --branch feature-lantern
+      - name: Exercise promotion gate fixture
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, sqlite3
+          sha = os.environ["GITHUB_SHA"]
+          connection = sqlite3.connect("/tmp/devos-knowledge.db")
+          try:
+              capability_id = connection.execute("SELECT capability_id FROM learning_capabilities ORDER BY capability_id LIMIT 1").fetchone()[0]
+          finally:
+              connection.close()
+          request = {
+              "observed_at": "2026-09-13T23:35:00+00:00",
+              "capability_id": capability_id,
+              "candidate_revision": sha,
+              "change_digest": hashlib.sha256(b"portable-promotion-fixture").hexdigest(),
+              "target": {
+                  "repository": "owner/fixture",
+                  "branch": "main",
+                  "paths": ["Devos/runtime/example.py"],
+                  "change_ref": f"git:{sha}"
+              },
+              "expected_benefit": "Exercise the governed promotion handoff.",
+              "regression_risk": "Fixture change could violate an unrelated invariant.",
+              "falsification_test": "Run the portable test suite on the exact candidate revision.",
+              "rollback_plan": "Restore the previous known-good revision and rerun the portable suite.",
+              "verification_plan": {
+                  "required_checks": [{"name": "portable-test-suite", "source": "workflow-prior-step"}],
+                  "require_independent_review": False,
+                  "require_canary": False
+              },
+              "required_authorization": "reviewed repository change",
+              "destination_authority": "repository"
+          }
+          verification = {
+              "observed_at": "2026-09-13T23:36:00+00:00",
+              "candidate_revision": sha,
+              "checks": [{
+                  "name": "portable-test-suite",
+                  "source": "workflow-prior-step",
+                  "status": "success",
+                  "revision": sha
+              }],
+              "rollback": {"ready": True, "triggered": False, "verified": False}
+          }
+          with open("/tmp/promotion-request.json", "w", encoding="utf-8") as handle:
+              json.dump(request, handle, indent=2, sort_keys=True)
+          with open("/tmp/promotion-verification.json", "w", encoding="utf-8") as handle:
+              json.dump(verification, handle, indent=2, sort_keys=True)
+          PY
+          python Devos/runtime/promotion_gate.py --db /tmp/devos-knowledge.db propose /tmp/promotion-request.json > /tmp/promotion-envelope.json
+          ENVELOPE_ID=$(python - <<'PY'
+          import json
+          print(json.load(open("/tmp/promotion-envelope.json", encoding="utf-8"))["envelope"]["envelope_id"])
+          PY
+          )
+          python Devos/runtime/promotion_gate.py --db /tmp/devos-knowledge.db verify --envelope "$ENVELOPE_ID" /tmp/promotion-verification.json
+          python Devos/runtime/promotion_gate.py --db /tmp/devos-knowledge.db list --branch feature-lantern
