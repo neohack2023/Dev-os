@@ -1,6 +1,6 @@
 {
   "name": "DevOS",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "portable_root": "Devos",
   "origin": {
     "repository": "neohack2023/project-orath",
@@ -24,10 +24,7 @@
     {
       "key": "knowledge_db",
       "checkpoint": "KNOWLEDGE_DB_PORT_01",
-      "runtime": [
-        "runtime/db_runtime.py",
-        "runtime/build_knowledge_db.py"
-      ],
+      "runtime": ["runtime/db_runtime.py", "runtime/build_knowledge_db.py"],
       "schema": "schemas/runtime-db-v1.sql",
       "source_blobs": {
         "build_knowledge_db.py": "1f1e8b8bc6cc9cbcf1cf0bb8a574a8dfe09587cf",
@@ -40,6 +37,16 @@
       "runtime": "runtime/knowledge_runtime.py",
       "schema": "schemas/context-packet.schema.json",
       "source_blob": "eeaf9fcfaf611696f15ebd02a72ad55e36e43aca"
+    },
+    {
+      "key": "evidence_runtime",
+      "checkpoint": "EVIDENCE_RUNTIME_PORT_01",
+      "runtime": ["runtime/evidence_runtime.py", "runtime/evidence_store.py"],
+      "schemas": ["schemas/runtime-db-v2.sql", "schemas/evidence-episode.schema.json"],
+      "source_blobs": {
+        "evidence_runtime.py": "0af8ef46001d66ceeb44497e2c127c39c2264d01",
+        "evidence_store.py": "09873d6e3085b3709245009df3b9bf932f20a7c0"
+      }
     }
   ],
   "generated_instance_files": [
