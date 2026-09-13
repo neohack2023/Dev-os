@@ -4,7 +4,7 @@ import argparse, hashlib, importlib.util, json
 from pathlib import Path
 from typing import Any
 
-PACKAGE_VERSION = "0.8.0"
+PACKAGE_VERSION = "0.9.0"
 INSTANCE_FILES = (
     "project.json", "branches.jsonl", "tasks.jsonl", "task-events.jsonl",
     "opportunities.jsonl", "tools.jsonl", "governance-lock.json", "research-policy.json",
@@ -62,19 +62,20 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
         "runtime/db_runtime.py", "runtime/build_knowledge_db.py", "runtime/knowledge_runtime.py",
         "runtime/evidence_runtime.py", "runtime/evidence_store.py",
         "runtime/reflection_core.py", "runtime/delta_reflection.py", "runtime/reflection_store.py",
-        "runtime/learning_threshold.py", "runtime/learning_store.py",
+        "runtime/learning_threshold.py", "runtime/learning_store.py", "runtime/promotion_gate.py",
         "templates/project.json", "templates/branches.jsonl",
         "contracts/STONE.md", "contracts/MASON.md", "contracts/SELF_IMPROVEMENT.md",
         "contracts/TASK_QUEUE.md", "contracts/REPO_VALIDATION.md", "contracts/RUNTIME_DB.md",
         "contracts/KNOWLEDGE_RUNTIME.md", "contracts/EVIDENCE_RUNTIME.md", "contracts/REFLECTION_CORE.md",
-        "contracts/LEARNING_LAYER.md",
+        "contracts/LEARNING_LAYER.md", "contracts/PROMOTION_GATE.md",
         "schemas/task.schema.json", "schemas/task-event.schema.json", "schemas/runtime-db-v1.sql",
         "schemas/runtime-db-v2.sql", "schemas/runtime-db-v3.sql", "schemas/runtime-db-v4.sql",
-        "schemas/context-packet.schema.json", "schemas/evidence-episode.schema.json",
-        "schemas/reflection-request.schema.json",
+        "schemas/runtime-db-v5.sql", "schemas/context-packet.schema.json", "schemas/evidence-episode.schema.json",
+        "schemas/reflection-request.schema.json", "schemas/promotion-request.schema.json",
+        "schemas/promotion-verification.schema.json",
         "tests/test_task_queue.py", "tests/test_repo_validator.py", "tests/test_knowledge_db.py",
         "tests/test_knowledge_runtime.py", "tests/test_evidence_runtime.py", "tests/test_reflection_core.py",
-        "tests/test_learning_layer.py",
+        "tests/test_learning_layer.py", "tests/test_promotion_gate.py",
         "tests/fixtures/task_queue/tasks.jsonl", "tests/fixtures/task_queue/task-events.jsonl",
         "tests/fixtures/task_queue/branches.jsonl",
         "tests/fixtures/repo_validator/host/Devos/project.json",
@@ -95,7 +96,8 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
         "tests/fixtures/reflection/request-lantern.json",
         "checkpoints/KNOWLEDGE_DB_PORT_01.md", "checkpoints/KNOWLEDGE_RUNTIME_PORT_01.md",
         "checkpoints/EVIDENCE_RUNTIME_PORT_01.md", "checkpoints/REFLECTION_CORE_PORT_01.md",
-        "checkpoints/LEARNING_LAYER_PORT_01.md", "state/.gitignore",
+        "checkpoints/LEARNING_LAYER_PORT_01.md", "checkpoints/PROMOTION_GATE_PORT_01.md",
+        "state/.gitignore",
     ]
     for rel in required:
         if not (devos_root / rel).is_file():
