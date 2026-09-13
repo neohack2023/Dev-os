@@ -1,6 +1,6 @@
 # DevOS Portable Package
 
-DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, and branch-aware context packets that live with the code they serve.
+DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, and immutable local evidence that live with the code they serve.
 
 Everything owned by the package lives under `Devos/` so the folder can be copied into another repository intact.
 
@@ -34,8 +34,6 @@ python Devos/runtime/repo_validator.py validate
 
 The validator checks project/governance agreement, branch topology and host surfaces, task routing, tool pinning, path safety, and local-first authority rules without requiring Notion or any other live external-memory service. `python Devos/runtime/devos.py validate` delegates initialized-instance checks to it.
 
-See `contracts/REPO_VALIDATION.md` and checkpoint `checkpoints/REPO_VALIDATOR_PORT_01.md`.
-
 ### Knowledge database
 
 ```bash
@@ -44,25 +42,28 @@ python Devos/runtime/build_knowledge_db.py query "search terms"
 python Devos/runtime/build_knowledge_db.py health
 ```
 
-The default database is generated at `Devos/state/devos-knowledge.db`. It materializes repository Markdown, project/governance identity, branches, effective tasks, dependency edges, tool registry rows, and SHA-256 provenance into SQLite. FTS5 is used when available, with deterministic fallback search otherwise.
-
-Normal rebuilds refresh projection tables while preserving runtime-owned state. `build --fresh` is the explicit destructive reset. The DB is a cache/projection, not an authority source.
-
-See `contracts/RUNTIME_DB.md` and checkpoint `checkpoints/KNOWLEDGE_DB_PORT_01.md`.
+The default database is `Devos/state/devos-knowledge.db`. Normal rebuilds refresh repository-derived projection tables while preserving durable runtime state. `build --fresh` is the explicit destructive reset.
 
 ### Knowledge runtime
 
 ```bash
 python Devos/runtime/knowledge_runtime.py status
 python Devos/runtime/knowledge_runtime.py packet "search terms" --branch project-core
-python Devos/runtime/knowledge_runtime.py packet "lantern" --branch feature-lantern --max-document-chars 4000
 ```
 
-The runtime turns the SQLite projection into bounded agent context packets. It resolves branch dependencies, ranks query-relevant documents and effective tasks, includes matching tools, binds source SHA-256 provenance, reports stale projections, and emits a deterministic packet hash.
+The runtime turns the SQLite projection into bounded branch-aware context packets with deterministic ranking, provenance, staleness reporting, and packet hashes.
 
-A missing DB is generated automatically. An existing stale projection is reported but not silently rebuilt; pass `--refresh` when replacement of generated state is intentional.
+### Evidence runtime
 
-See `contracts/KNOWLEDGE_RUNTIME.md`, `schemas/context-packet.schema.json`, and checkpoint `checkpoints/KNOWLEDGE_RUNTIME_PORT_01.md`.
+```bash
+python Devos/runtime/evidence_store.py admit path/to/evidence-episode.json
+python Devos/runtime/evidence_store.py list
+python Devos/runtime/evidence_store.py list --branch project-core
+```
+
+Evidence roots and atomic findings are admitted as durable SQLite state. Lineage collapse prevents derivatives and same-input reproductions from inflating independent support. Explicit cross-reference and triangulation produce review-oriented delta packets whose `authority_effect` is always `NONE`.
+
+Evidence IDs are immutable: identical replay is idempotent, while reusing an ID with changed content is rejected. Normal knowledge projection rebuilds preserve evidence. See `contracts/EVIDENCE_RUNTIME.md`, `schemas/evidence-episode.schema.json`, and checkpoint `checkpoints/EVIDENCE_RUNTIME_PORT_01.md`.
 
 ## Core law
 
