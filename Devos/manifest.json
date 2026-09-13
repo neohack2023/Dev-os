@@ -1,0 +1,22 @@
+{
+  "name": "DevOS",
+  "version": "0.1.0",
+  "portable_root": "Devos",
+  "origin": {
+    "repository": "neohack2023/project-orath",
+    "source_path": "devos",
+    "source_tree_sha": "5be8163a880fb77b2b4984d8b36472c3c5134fbf",
+    "source_repo_tree_sha": "340e69d2156229188208cb4c5c181da7525175e9"
+  },
+  "generated_instance_files": [
+    "project.json",
+    "branches.jsonl",
+    "tasks.jsonl",
+    "task-events.jsonl",
+    "opportunities.jsonl",
+    "tools.jsonl",
+    "governance-lock.json",
+    "research-policy.json"
+  ],
+  "state_policy": "host-specific state is never shipped as a distribution default"
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "project_name": "__PROJECT__",
+  "scope_key": "__SCOPE__",
+  "repository": "__REPOSITORY__",
+  "devos_version": "0.1.0",
+  "authority": {
+    "repository_execution": "github",
+    "external_memory": "configured-by-host"
+  },
+  "paths": {
+    "devos": "Devos",
+    "runtime_state": "Devos/state",
+    "receipts": "Devos/receipts"
+  }
+}
