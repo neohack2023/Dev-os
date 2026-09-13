@@ -1,0 +1,2 @@
+{"branch_key":"project-core","scope_key":"fixture-project","title":"Project Core","status":"active","dependencies":[],"surfaces":["README.md"]}
+{"branch_key":"runtime","scope_key":"fixture-project","title":"Runtime","status":"active","dependencies":["project-core"],"surfaces":["src"]}
