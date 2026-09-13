@@ -1,6 +1,6 @@
 {
   "name": "DevOS",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "portable_root": "Devos",
   "origin": {
     "repository": "neohack2023/project-orath",
@@ -33,6 +33,13 @@
         "build_knowledge_db.py": "1f1e8b8bc6cc9cbcf1cf0bb8a574a8dfe09587cf",
         "knowledge/schema.sql": "de73b2967a8e682913702bb00fd3ed6f2d57c33c"
       }
+    },
+    {
+      "key": "knowledge_runtime",
+      "checkpoint": "KNOWLEDGE_RUNTIME_PORT_01",
+      "runtime": "runtime/knowledge_runtime.py",
+      "schema": "schemas/context-packet.schema.json",
+      "source_blob": "eeaf9fcfaf611696f15ebd02a72ad55e36e43aca"
     }
   ],
   "generated_instance_files": [
