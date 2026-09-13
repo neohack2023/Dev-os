@@ -1,0 +1,2 @@
+{"branch_key":"project-core","scope_key":"fixture","title":"Project Core","status":"active","dependencies":[],"surfaces":["."]}
+{"branch_key":"feature-lantern","scope_key":"fixture","title":"Lantern","status":"active","dependencies":["project-core"],"surfaces":["docs"]}
