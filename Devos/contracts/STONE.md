@@ -9,3 +9,5 @@ Retain user decisions, accepted artifacts, observed test/runtime evidence, durab
 Reject conversational glue, duplicate explanation, unsupported certainty, hidden reasoning, sibling-project material outside the boundary, abandoned drafts without reusable lessons, and speculative associations presented as fact.
 
 Frequency is evidence about prevalence, not authority. If source/boundary/provenance/conflicts are unresolved, STONE stays unlocked and MASON must not silently import extra context to repair it.
+
+For self-improvement promotion, STONE locks only after the candidate resolves to transfer-tested, regression-safe learning with explicit reflection/evidence lineage, exact repository target, exact candidate revision, change digest, bounded paths, rollback plan, falsification test, verifier policy, and required authorization. A locked promotion envelope remains `CANDIDATE_ONLY`, has `authority_effect: NONE`, and does not authorize a write.
