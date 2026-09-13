@@ -1,6 +1,6 @@
 {
   "name": "DevOS",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "portable_root": "Devos",
   "origin": {
     "repository": "neohack2023/project-orath",
@@ -9,77 +9,15 @@
     "source_repo_tree_sha": "340e69d2156229188208cb4c5c181da7525175e9"
   },
   "neutralized_subsystems": [
-    {
-      "key": "task_queue",
-      "checkpoint": "TASK_QUEUE_PORT_01",
-      "runtime": "runtime/task_queue.py",
-      "source_blob": "1121c0bd8673c64f7446aa2296fec9998527db06"
-    },
-    {
-      "key": "repo_validator",
-      "checkpoint": "REPO_VALIDATOR_PORT_01",
-      "runtime": "runtime/repo_validator.py",
-      "source_blob": "ff70d5e5a12e3113df35f0642b3c855178bec28a"
-    },
-    {
-      "key": "knowledge_db",
-      "checkpoint": "KNOWLEDGE_DB_PORT_01",
-      "runtime": ["runtime/db_runtime.py", "runtime/build_knowledge_db.py"],
-      "schema": "schemas/runtime-db-v1.sql",
-      "source_blobs": {
-        "build_knowledge_db.py": "1f1e8b8bc6cc9cbcf1cf0bb8a574a8dfe09587cf",
-        "knowledge/schema.sql": "de73b2967a8e682913702bb00fd3ed6f2d57c33c"
-      }
-    },
-    {
-      "key": "knowledge_runtime",
-      "checkpoint": "KNOWLEDGE_RUNTIME_PORT_01",
-      "runtime": "runtime/knowledge_runtime.py",
-      "schema": "schemas/context-packet.schema.json",
-      "source_blob": "eeaf9fcfaf611696f15ebd02a72ad55e36e43aca"
-    },
-    {
-      "key": "evidence_runtime",
-      "checkpoint": "EVIDENCE_RUNTIME_PORT_01",
-      "runtime": ["runtime/evidence_runtime.py", "runtime/evidence_store.py"],
-      "schemas": ["schemas/runtime-db-v2.sql", "schemas/evidence-episode.schema.json"],
-      "source_blobs": {
-        "evidence_runtime.py": "0af8ef46001d66ceeb44497e2c127c39c2264d01",
-        "evidence_store.py": "09873d6e3085b3709245009df3b9bf932f20a7c0"
-      }
-    },
-    {
-      "key": "reflection_core",
-      "checkpoint": "REFLECTION_CORE_PORT_01",
-      "runtime": [
-        "runtime/reflection_core.py",
-        "runtime/delta_reflection.py",
-        "runtime/reflection_store.py"
-      ],
-      "schemas": [
-        "schemas/runtime-db-v3.sql",
-        "schemas/reflection-request.schema.json"
-      ],
-      "source_blobs": {
-        "reflection_core.py": "aa3d6a8c33b05d16a607f478057aad5a8f6e8e36",
-        "delta_reflection.py": "4336509373b29cdbcca76f1381d3afdef48f8c07"
-      }
-    }
+    {"key":"task_queue","checkpoint":"TASK_QUEUE_PORT_01","runtime":"runtime/task_queue.py","source_blob":"1121c0bd8673c64f7446aa2296fec9998527db06"},
+    {"key":"repo_validator","checkpoint":"REPO_VALIDATOR_PORT_01","runtime":"runtime/repo_validator.py","source_blob":"ff70d5e5a12e3113df35f0642b3c855178bec28a"},
+    {"key":"knowledge_db","checkpoint":"KNOWLEDGE_DB_PORT_01","runtime":["runtime/db_runtime.py","runtime/build_knowledge_db.py"],"schema":"schemas/runtime-db-v1.sql","source_blobs":{"build_knowledge_db.py":"1f1e8b8bc6cc9cbcf1cf0bb8a574a8dfe09587cf","knowledge/schema.sql":"de73b2967a8e682913702bb00fd3ed6f2d57c33c"}},
+    {"key":"knowledge_runtime","checkpoint":"KNOWLEDGE_RUNTIME_PORT_01","runtime":"runtime/knowledge_runtime.py","schema":"schemas/context-packet.schema.json","source_blob":"eeaf9fcfaf611696f15ebd02a72ad55e36e43aca"},
+    {"key":"evidence_runtime","checkpoint":"EVIDENCE_RUNTIME_PORT_01","runtime":["runtime/evidence_runtime.py","runtime/evidence_store.py"],"schemas":["schemas/runtime-db-v2.sql","schemas/evidence-episode.schema.json"],"source_blobs":{"evidence_runtime.py":"0af8ef46001d66ceeb44497e2c127c39c2264d01","evidence_store.py":"09873d6e3085b3709245009df3b9bf932f20a7c0"}},
+    {"key":"reflection_core","checkpoint":"REFLECTION_CORE_PORT_01","runtime":["runtime/reflection_core.py","runtime/delta_reflection.py","runtime/reflection_store.py"],"schemas":["schemas/runtime-db-v3.sql","schemas/reflection-request.schema.json"],"source_blobs":{"reflection_core.py":"aa3d6a8c33b05d16a607f478057aad5a8f6e8e36","delta_reflection.py":"4336509373b29cdbcca76f1381d3afdef48f8c07"}},
+    {"key":"learning_layer","checkpoint":"LEARNING_LAYER_PORT_01","runtime":["runtime/learning_threshold.py","runtime/learning_store.py"],"schema":"schemas/runtime-db-v4.sql","source_blobs":{"learning_threshold.py":"c24939c0b9fc6e869a4de290740a6560b11327d0","test_learning_threshold.py":"132bf80734fa0661f08c621ce8d36e848d8062d5","test_learning_store.py":"a1303a53a0ac23c5806c2451f2d8a1203b58e96c"}}
   ],
-  "generated_instance_files": [
-    "project.json",
-    "branches.jsonl",
-    "tasks.jsonl",
-    "task-events.jsonl",
-    "opportunities.jsonl",
-    "tools.jsonl",
-    "governance-lock.json",
-    "research-policy.json"
-  ],
-  "generated_runtime_state": [
-    "state/devos-knowledge.db",
-    "state/devos-knowledge.db-wal",
-    "state/devos-knowledge.db-shm"
-  ],
+  "generated_instance_files": ["project.json","branches.jsonl","tasks.jsonl","task-events.jsonl","opportunities.jsonl","tools.jsonl","governance-lock.json","research-policy.json"],
+  "generated_runtime_state": ["state/devos-knowledge.db","state/devos-knowledge.db-wal","state/devos-knowledge.db-shm"],
   "state_policy": "host-specific state is never shipped as a distribution default"
 }
