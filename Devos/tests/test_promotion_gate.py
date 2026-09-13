@@ -119,10 +119,10 @@ class PromotionGateTests(unittest.TestCase):
             }
         return payload
 
-    def test_schema_v5_and_locked_stone_envelope(self):
+    def test_schema_v6_and_locked_stone_envelope(self):
         db, connection, capability_id = self._context()
         try:
-            self.assertEqual(5, CURRENT_SCHEMA_VERSION)
+            self.assertEqual(6, CURRENT_SCHEMA_VERSION)
             result = persist_envelope(connection, self._request(capability_id))
             envelope = result["envelope"]
             self.assertEqual("LOCKED", envelope["stone_state"])
