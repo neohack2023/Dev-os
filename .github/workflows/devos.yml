@@ -26,3 +26,7 @@ jobs:
           python Devos/runtime/build_knowledge_db.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db build
           python Devos/runtime/build_knowledge_db.py --db /tmp/devos-knowledge.db query lantern
           python Devos/runtime/build_knowledge_db.py --db /tmp/devos-knowledge.db health
+      - name: Build branch-aware context packet
+        run: |
+          python Devos/runtime/knowledge_runtime.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db status
+          python Devos/runtime/knowledge_runtime.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db packet lantern --branch feature-lantern --max-document-chars 4000
