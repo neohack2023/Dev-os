@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/mason-execution-request.schema.json",
+  "title": "DevOS MASON local execution request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observed_at", "base_revision", "authorization"],
+  "properties": {
+    "observed_at": {"type": "string", "minLength": 1},
+    "base_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorization_id",
+        "source",
+        "actor",
+        "observed_at",
+        "grant",
+        "decision_id",
+        "envelope_id",
+        "candidate_revision",
+        "target_branch",
+        "scope",
+        "approved"
+      ],
+      "properties": {
+        "authorization_id": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "actor": {"type": "string", "minLength": 1},
+        "observed_at": {"type": "string", "minLength": 1},
+        "grant": {"const": "MASON_FAST_FORWARD"},
+        "decision_id": {"type": "string", "minLength": 1},
+        "envelope_id": {"type": "string", "minLength": 1},
+        "candidate_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "target_branch": {"type": "string", "minLength": 1},
+        "scope": {"type": "string", "minLength": 1},
+        "approved": {"const": true}
+      }
+    }
+  }
+}
