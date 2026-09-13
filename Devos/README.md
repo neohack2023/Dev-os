@@ -1,6 +1,6 @@
 # DevOS Portable Package
 
-DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, immutable local evidence, and evidence-bounded reflection candidates that live with the code they serve.
+DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, immutable local evidence, evidence-bounded reflection candidates, and transfer-tested candidate capabilities that live with the code they serve.
 
 Everything owned by the package lives under `Devos/` so the folder can be copied into another repository intact.
 
@@ -81,6 +81,26 @@ Reflection candidates are deterministic, immutable/idempotent durable runtime st
 
 See `contracts/REFLECTION_CORE.md`, `schemas/reflection-request.schema.json`, and checkpoint `checkpoints/REFLECTION_CORE_PORT_01.md`.
 
+### Learning layer
+
+```bash
+python Devos/runtime/learning_store.py --db Devos/state/devos-knowledge.db \
+  admit path/to/learning-bundle.json
+
+python Devos/runtime/learning_store.py --db Devos/state/devos-knowledge.db \
+  list --branch project-core
+```
+
+Learning starts from stored reflection candidates, never from ungrounded prose. Procedure evidence must already be present in the source reflections, preserving the chain `evidence -> delta -> reflection -> learning`.
+
+The portable evaluator records tiers T0 through T5. T3 is a held-out transfer gate whose input identities must be disjoint from T1/T2. Passing T0-T3 can raise a capability to `TRANSFER`. T4 and T5 are recorded separately as `regression_safe` and `canary_validated`; this slice does not infer `COMPOSITION`, `ADAPTATION`, or `METACOGNITIVE_CONTROL` from them.
+
+Candidate memory forms are `EPISODIC`, `SEMANTIC`, `PROCEDURAL`, and `NEGATIVE`. Procedures, experiences, evaluations, and capability lifecycle events are durable runtime state and survive normal projection rebuilds. Exact replay is idempotent and does not invent another lifecycle event.
+
+Every learning artifact remains `CANDIDATE_ONLY` with `authority_effect: NONE`. Learning can nominate reusable knowledge, but only the governed STONE -> MASON path may turn a candidate into repository authority.
+
+See `contracts/LEARNING_LAYER.md` and checkpoint `checkpoints/LEARNING_LAYER_PORT_01.md`.
+
 ## Core law
 
 - GitHub owns live repository execution truth.
@@ -89,6 +109,7 @@ See `contracts/REFLECTION_CORE.md`, `schemas/reflection-request.schema.json`, an
 - MASON controls durable assembly and verified writes.
 - Research is bounded and need-triggered.
 - Reflection may nominate improvements but cannot self-promote them.
+- Learning requires transfer evidence and cannot self-promote.
 - Repetition/prevalence never upgrades authority by itself.
 - Ordinary repo work must remain possible from the checked-in local bundle.
 
