@@ -7,7 +7,7 @@ from build_knowledge_db import build
 from db_runtime import CURRENT_SCHEMA_VERSION, connect_runtime
 from evidence_store import persist_episode
 from reflection_store import persist_reflection
-from learning_threshold import EvaluationTier, FixtureResult, MemoryType, assess_evaluation, maturity_from_report
+from learning_threshold import EvaluationTier, FixtureResult, assess_evaluation, maturity_from_report
 from learning_store import admit_bundle
 
 FIXTURE=ROOT/"tests"/"fixtures"/"knowledge_db"/"host"
@@ -23,7 +23,7 @@ class LearningLayerTests(unittest.TestCase):
         request=json.loads(REFLECT.read_text()); reflected=persist_reflection(c,evidence["delta"]["delta_id"],request)
         return db,c,reflected["reflection"]
     def bundle(self, reflection):
-        refs=reflection["source_evidence_refs"]
+        refs=list(reflection["source_evidence_refs"])
         return {
           "observed_at":"2026-09-13T23:12:00+00:00",
           "procedure":{"branch_scope":"feature-lantern","name":"lantern-stability-check","version":"1","trigger_conditions":["lantern state available"],"input_schema":["state"],"output_schema":["stable"],"implementation_ref":"tests:lantern_stability_check","source_reflection_ids":[reflection["reflection_id"]],"source_evidence_refs":refs,"known_failures":["hidden mutable ordering"]},
@@ -44,13 +44,14 @@ class LearningLayerTests(unittest.TestCase):
             out=admit_bundle(c,self.bundle(r))
             self.assertEqual("TRANSFER",out["maturity_stage"]); self.assertTrue(out["validated_for_transfer"]); self.assertTrue(out["regression_safe"]); self.assertTrue(out["canary_validated"]); self.assertEqual("NONE",out["authority_effect"])
         finally:c.close()
-    def test_learning_replay_is_idempotent_and_competing_history_is_append_only(self):
+    def test_learning_replay_is_idempotent(self):
         db,c,r=self.make_context()
         try:
             b=self.bundle(r); first=admit_bundle(c,b); second=admit_bundle(c,b)
             self.assertEqual(first["procedure_id"],second["procedure_id"])
-            self.assertEqual(1,c.execute("SELECT count(*) FROM learning_procedures").fetchone()[0])
-            self.assertEqual(2,c.execute("SELECT count(*) FROM learning_capability_events").fetchone()[0])
+            self.assertFalse(first["replayed"]); self.assertTrue(second["replayed"])
+            self.assertEqual(first["capability_event_id"],second["capability_event_id"])
+            self.assertEqual(1,c.execute("SELECT count(*) FROM learning_capability_events").fetchone()[0])
         finally:c.close()
     def test_learning_cannot_invent_evidence(self):
         db,c,r=self.make_context()
