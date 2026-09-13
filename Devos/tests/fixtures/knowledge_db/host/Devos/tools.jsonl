@@ -1,0 +1,1 @@
+{"tool_key":"fixture-tool","repository":"owner/tool","verified_revision":"0123456789abcdef0123456789abcdef01234567","usage_contract":"fixture only","maturity":"verified","capabilities":[{"name":"parse","scope":"fixture","languages":["python"],"qualification":"verified"}],"known_limits":["fixture"],"entrypoints":["tool.py"],"evidence":["repo:test"],"last_verified":"2026-09-13"}
