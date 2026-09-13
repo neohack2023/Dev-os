@@ -89,11 +89,11 @@ class EvidenceStoreTests(unittest.TestCase):
     def load_episode(self):
         return json.loads(EPISODE.read_text(encoding="utf-8"))
 
-    def test_schema_v2_and_episode_admission(self):
+    def test_current_schema_and_episode_admission(self):
         db = self.make_db()
         connection = connect_runtime(db)
         try:
-            self.assertEqual(2, CURRENT_SCHEMA_VERSION)
+            self.assertEqual(3, CURRENT_SCHEMA_VERSION)
             result = persist_episode(connection, self.load_episode())
             self.assertEqual("CONVERGENCE", result["triangulation_state"])
             self.assertEqual("NONE", result["authority_effect"])
