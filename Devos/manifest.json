@@ -1,6 +1,6 @@
 {
   "name": "DevOS",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "portable_root": "Devos",
   "origin": {
     "repository": "neohack2023/project-orath",
@@ -15,7 +15,8 @@
     {"key":"knowledge_runtime","checkpoint":"KNOWLEDGE_RUNTIME_PORT_01","runtime":"runtime/knowledge_runtime.py","schema":"schemas/context-packet.schema.json","source_blob":"eeaf9fcfaf611696f15ebd02a72ad55e36e43aca"},
     {"key":"evidence_runtime","checkpoint":"EVIDENCE_RUNTIME_PORT_01","runtime":["runtime/evidence_runtime.py","runtime/evidence_store.py"],"schemas":["schemas/runtime-db-v2.sql","schemas/evidence-episode.schema.json"],"source_blobs":{"evidence_runtime.py":"0af8ef46001d66ceeb44497e2c127c39c2264d01","evidence_store.py":"09873d6e3085b3709245009df3b9bf932f20a7c0"}},
     {"key":"reflection_core","checkpoint":"REFLECTION_CORE_PORT_01","runtime":["runtime/reflection_core.py","runtime/delta_reflection.py","runtime/reflection_store.py"],"schemas":["schemas/runtime-db-v3.sql","schemas/reflection-request.schema.json"],"source_blobs":{"reflection_core.py":"aa3d6a8c33b05d16a607f478057aad5a8f6e8e36","delta_reflection.py":"4336509373b29cdbcca76f1381d3afdef48f8c07"}},
-    {"key":"learning_layer","checkpoint":"LEARNING_LAYER_PORT_01","runtime":["runtime/learning_threshold.py","runtime/learning_store.py"],"schema":"schemas/runtime-db-v4.sql","source_blobs":{"learning_threshold.py":"c24939c0b9fc6e869a4de290740a6560b11327d0","test_learning_threshold.py":"132bf80734fa0661f08c621ce8d36e848d8062d5","test_learning_store.py":"a1303a53a0ac23c5806c2451f2d8a1203b58e96c"}}
+    {"key":"learning_layer","checkpoint":"LEARNING_LAYER_PORT_01","runtime":["runtime/learning_threshold.py","runtime/learning_store.py"],"schema":"schemas/runtime-db-v4.sql","source_blobs":{"learning_threshold.py":"c24939c0b9fc6e869a4de290740a6560b11327d0","test_learning_threshold.py":"132bf80734fa0661f08c621ce8d36e848d8062d5","test_learning_store.py":"a1303a53a0ac23c5806c2451f2d8a1203b58e96c"}},
+    {"key":"promotion_gate","checkpoint":"PROMOTION_GATE_PORT_01","runtime":"runtime/promotion_gate.py","schemas":["schemas/runtime-db-v5.sql","schemas/promotion-request.schema.json","schemas/promotion-verification.schema.json"],"basis":["contracts/STONE.md","contracts/MASON.md","contracts/SELF_IMPROVEMENT.md","contracts/LEARNING_LAYER.md"]}
   ],
   "generated_instance_files": ["project.json","branches.jsonl","tasks.jsonl","task-events.jsonl","opportunities.jsonl","tools.jsonl","governance-lock.json","research-policy.json"],
   "generated_runtime_state": ["state/devos-knowledge.db","state/devos-knowledge.db-wal","state/devos-knowledge.db-shm"],
