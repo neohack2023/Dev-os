@@ -21,3 +21,8 @@ jobs:
         run: python Devos/runtime/task_queue.py --devos-root Devos/tests/fixtures/task_queue validate
       - name: Validate repository fixture
         run: python Devos/runtime/repo_validator.py --devos-root Devos/tests/fixtures/repo_validator/host/Devos --host-root Devos/tests/fixtures/repo_validator/host validate
+      - name: Build and query knowledge DB fixture
+        run: |
+          python Devos/runtime/build_knowledge_db.py --devos-root Devos/tests/fixtures/knowledge_db/host/Devos --host-root Devos/tests/fixtures/knowledge_db/host --db /tmp/devos-knowledge.db build
+          python Devos/runtime/build_knowledge_db.py --db /tmp/devos-knowledge.db query lantern
+          python Devos/runtime/build_knowledge_db.py --db /tmp/devos-knowledge.db health
