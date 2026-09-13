@@ -48,7 +48,19 @@ python Devos/runtime/reflection_store.py \
   reflect --delta <delta-id> --request path/to/reflection-request.json
 ```
 
-10. Wire host CI to package validation plus applicable subsystem tests/build/packet/evidence/reflection checks.
+10. Admit learning only from bundles that resolve to stored reflections:
+
+```bash
+python Devos/runtime/learning_store.py \
+  --db Devos/state/devos-knowledge.db \
+  admit path/to/learning-bundle.json
+
+python Devos/runtime/learning_store.py \
+  --db Devos/state/devos-knowledge.db \
+  list --branch project-core
+```
+
+11. Wire host CI to package validation plus applicable subsystem tests/build/packet/evidence/reflection/learning checks.
 
 ## Package-owned vs instance-owned
 
@@ -60,7 +72,7 @@ Receipts and runtime databases are host state. They must not be copied from one 
 
 ## Knowledge DB rebuild boundary
 
-A normal knowledge DB build replaces only repository-derived projection tables and preserves durable runtime-owned state such as `runtime_kv`, evidence tables, and reflection candidates. Use `build --fresh` only when destructive reset is intended.
+A normal knowledge DB build replaces only repository-derived projection tables and preserves durable runtime-owned state such as `runtime_kv`, evidence tables, reflection candidates, learning procedures, evaluations, experiences, capabilities, and capability lifecycle events. Use `build --fresh` only when destructive reset is intended.
 
 ## Knowledge runtime boundary
 
@@ -88,6 +100,27 @@ Do not treat self-generated reflection text or numeric confidence as evidence. A
 
 Reflection candidates are durable runtime state and survive normal projection rebuilds. Like evidence, they validate branch identity at admission rather than foreign-keying into rebuildable projection tables.
 
+## Learning boundary
+
+Learning is candidate consolidation, not authority promotion.
+
+A learning bundle must reference one or more stored reflection candidates. The procedure's evidence references must be a subset of evidence already preserved by those reflections. This prevents the learning layer from laundering new claims into its own provenance.
+
+Evaluation uses explicit tiers:
+
+- T0 invariant/contract
+- T1 known/training cases
+- T2 development variations
+- T3 held-out transfer
+- T4 adversarial/regression
+- T5 real-work canary
+
+T3 input identities must be non-empty and disjoint from T1/T2. Passing T0-T3 is required for `TRANSFER`. T4 and T5 are recorded as regression/canary properties but do not imply higher maturity in this slice.
+
+Candidate memory types are episodic, semantic, procedural, and negative. Exact replay is idempotent. Capability lifecycle history appends only when the learned state changes. Do not use SQLite `INSERT OR REPLACE` for current capability rows because replacement semantics can cascade-delete lifecycle history; use a true UPSERT.
+
+All learning outputs retain `authority_effect: NONE` and `promotion_state: CANDIDATE_ONLY`. Learning may nominate reusable procedures or capabilities but may not mutate repository canon or bypass STONE -> MASON.
+
 ## Validation boundary
 
 Normal validation checks that registered branch surfaces actually exist in the host repository. `repo_validator.py --skip-surface-checks validate` exists only for staged migrations.
@@ -96,4 +129,4 @@ Normal validation checks that registered branch surfaces actually exist in the h
 
 An upgrade may replace package-owned files. It must preserve instance-owned files unless an explicit migration declares and verifies a transformation.
 
-When a subsystem schema changes, migrate host state explicitly. Never silently rewrite a project's queue, evidence, reflection, authority state, or runtime-owned database state during package upgrade.
+When a subsystem schema changes, migrate host state explicitly. Never silently rewrite a project's queue, evidence, reflection, learning, authority state, or runtime-owned database state during package upgrade.
