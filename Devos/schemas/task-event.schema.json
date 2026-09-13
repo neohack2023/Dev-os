@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DevOS Task Lifecycle Event",
+  "type": "object",
+  "required": ["event_id", "task_id", "status", "occurred_on"],
+  "properties": {
+    "event_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["READY", "BLOCKED", "TRACKING", "CLAIMED", "IN_PROGRESS", "VERIFY", "DONE", "PAUSED", "REJECTED", "CANCELLED"]},
+    "occurred_on": {"type": "string", "minLength": 1},
+    "assigned_agent": {"type": ["string", "null"]},
+    "tracking_add": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "evidence_refs_add": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": false
+}
