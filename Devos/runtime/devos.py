@@ -4,7 +4,7 @@ import argparse, hashlib, importlib.util, json
 from pathlib import Path
 from typing import Any
 
-PACKAGE_VERSION = "0.3.0"
+PACKAGE_VERSION = "0.4.0"
 INSTANCE_FILES = (
     "project.json", "branches.jsonl", "tasks.jsonl", "task-events.jsonl",
     "opportunities.jsonl", "tools.jsonl", "governance-lock.json", "research-policy.json",
@@ -62,11 +62,12 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
     required = [
         "README.md", "AGENTS.md", "VERSION", "manifest.json", "PORTING.md",
         "runtime/devos.py", "runtime/task_queue.py", "runtime/repo_validator.py",
+        "runtime/db_runtime.py", "runtime/build_knowledge_db.py",
         "templates/project.json", "templates/branches.jsonl",
         "contracts/STONE.md", "contracts/MASON.md", "contracts/SELF_IMPROVEMENT.md",
-        "contracts/TASK_QUEUE.md", "contracts/REPO_VALIDATION.md",
-        "schemas/task.schema.json", "schemas/task-event.schema.json",
-        "tests/test_task_queue.py", "tests/test_repo_validator.py",
+        "contracts/TASK_QUEUE.md", "contracts/REPO_VALIDATION.md", "contracts/RUNTIME_DB.md",
+        "schemas/task.schema.json", "schemas/task-event.schema.json", "schemas/runtime-db-v1.sql",
+        "tests/test_task_queue.py", "tests/test_repo_validator.py", "tests/test_knowledge_db.py",
         "tests/fixtures/task_queue/tasks.jsonl",
         "tests/fixtures/task_queue/task-events.jsonl",
         "tests/fixtures/task_queue/branches.jsonl",
@@ -76,6 +77,15 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
         "tests/fixtures/repo_validator/host/Devos/tasks.jsonl",
         "tests/fixtures/repo_validator/host/Devos/task-events.jsonl",
         "tests/fixtures/repo_validator/host/Devos/tools.jsonl",
+        "tests/fixtures/knowledge_db/host/README.md",
+        "tests/fixtures/knowledge_db/host/docs/architecture.md",
+        "tests/fixtures/knowledge_db/host/Devos/project.json",
+        "tests/fixtures/knowledge_db/host/Devos/governance-lock.json",
+        "tests/fixtures/knowledge_db/host/Devos/branches.jsonl",
+        "tests/fixtures/knowledge_db/host/Devos/tasks.jsonl",
+        "tests/fixtures/knowledge_db/host/Devos/task-events.jsonl",
+        "tests/fixtures/knowledge_db/host/Devos/tools.jsonl",
+        "checkpoints/KNOWLEDGE_DB_PORT_01.md", "state/.gitignore",
     ]
     for rel in required:
         if not (devos_root / rel).is_file():
