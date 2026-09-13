@@ -1,6 +1,6 @@
 # DevOS Portable Package
 
-DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, immutable local evidence, evidence-bounded reflection candidates, and transfer-tested candidate capabilities that live with the code they serve.
+DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, immutable local evidence, evidence-bounded reflection candidates, transfer-tested candidate capabilities, and an exact-revision promotion gate that live with the code they serve.
 
 Everything owned by the package lives under `Devos/` so the folder can be copied into another repository intact.
 
@@ -101,6 +101,27 @@ Every learning artifact remains `CANDIDATE_ONLY` with `authority_effect: NONE`. 
 
 See `contracts/LEARNING_LAYER.md` and checkpoint `checkpoints/LEARNING_LAYER_PORT_01.md`.
 
+### Promotion gate
+
+```bash
+python Devos/runtime/promotion_gate.py --db Devos/state/devos-knowledge.db \
+  propose path/to/promotion-request.json
+
+python Devos/runtime/promotion_gate.py --db Devos/state/devos-knowledge.db \
+  verify --envelope <promotion-envelope-id> path/to/promotion-verification.json
+
+python Devos/runtime/promotion_gate.py --db Devos/state/devos-knowledge.db \
+  list --branch project-core
+```
+
+Promotion starts only from stored learning capabilities whose latest evaluation passed held-out transfer and regression safety. STONE locks an envelope containing exact learning/reflection/evidence lineage, repository target, candidate Git SHA, change SHA-256, bounded paths, falsification test, rollback plan, verifier policy, and required authorization.
+
+Verification is bound to the exact candidate revision. Required checks match by name and verifier source; configured review/canary evidence must also bind to that same revision. The runtime derives `PROMOTE`, `REVISE`, `ROLLBACK`, or `NO_OP`.
+
+A `PROMOTE` result means only "eligible for MASON review/handoff." It never grants write authority. Every envelope and decision remains `CANDIDATE_ONLY`, `authority_effect: NONE`, and `write_authorized: false`.
+
+See `contracts/PROMOTION_GATE.md` and checkpoint `checkpoints/PROMOTION_GATE_PORT_01.md`.
+
 ## Core law
 
 - GitHub owns live repository execution truth.
@@ -110,6 +131,7 @@ See `contracts/LEARNING_LAYER.md` and checkpoint `checkpoints/LEARNING_LAYER_POR
 - Research is bounded and need-triggered.
 - Reflection may nominate improvements but cannot self-promote them.
 - Learning requires transfer evidence and cannot self-promote.
+- Promotion decisions bind to exact candidate revisions and still do not authorize writes.
 - Repetition/prevalence never upgrades authority by itself.
 - Ordinary repo work must remain possible from the checked-in local bundle.
 
