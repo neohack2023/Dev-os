@@ -25,8 +25,17 @@ python Devos/runtime/build_knowledge_db.py query "search terms"
 python Devos/runtime/build_knowledge_db.py health
 ```
 
-9. Wire host CI to `python Devos/runtime/devos.py validate` plus the applicable subsystem tests/build checks.
-10. Add host-specific tools, authority adapters, and memory connectors through governed changes rather than editing distribution defaults ad hoc.
+9. Generate branch-aware packets for agents:
+
+```bash
+python Devos/runtime/knowledge_runtime.py status
+python Devos/runtime/knowledge_runtime.py packet "search terms" --branch project-core
+```
+
+Add repeated `--branch` flags when a task legitimately crosses branch boundaries. The runtime resolves dependencies automatically. Use `--refresh` only when you intentionally want to rebuild an existing projection before retrieval.
+
+10. Wire host CI to `python Devos/runtime/devos.py validate` plus the applicable subsystem tests/build/packet checks.
+11. Add host-specific tools, authority adapters, and memory connectors through governed changes rather than editing distribution defaults ad hoc.
 
 ## Package-owned vs instance-owned
 
@@ -39,6 +48,12 @@ Receipts and runtime databases are host state. They must not be copied from one 
 ## Knowledge DB rebuild boundary
 
 A normal knowledge DB build replaces only repository-derived projection tables and preserves runtime-owned tables such as `runtime_kv`. Use `build --fresh` only when destructive reset is intended. The logical `projection_digest` is the determinism signal; SQLite file bytes and WAL layout are not treated as canonical artifacts.
+
+## Knowledge runtime boundary
+
+Context packet generation is read-only against an existing projection. It reports source drift through `projection.fresh` and `changed_sources`; it does not silently rebuild stale state. A missing database may be generated because no prior projection exists. Pass `--refresh` explicitly to rebuild an existing database before packet generation.
+
+Packets are bounded retrieval products, not authority objects. Their source manifest and packet hash make the selected context auditable, but authority remains with the checked-in repository sources.
 
 ## Validation boundary
 
