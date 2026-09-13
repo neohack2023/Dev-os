@@ -1,0 +1,21 @@
+name: DevOS Portable Validation
+
+on:
+  push:
+    branches: ["main", "devos/**"]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate portable package
+        run: python Devos/runtime/devos.py validate --package-only
+      - name: Run DevOS tests
+        run: python -m unittest discover -s Devos/tests -v
+      - name: Validate task queue fixture
+        run: python Devos/runtime/task_queue.py --devos-root Devos/tests/fixtures/task_queue validate
