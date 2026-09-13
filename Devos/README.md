@@ -1,6 +1,6 @@
 # DevOS Portable Package
 
-DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, and a local queryable knowledge projection that live with the code they serve.
+DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, and branch-aware context packets that live with the code they serve.
 
 Everything owned by the package lives under `Devos/` so the folder can be copied into another repository intact.
 
@@ -49,6 +49,20 @@ The default database is generated at `Devos/state/devos-knowledge.db`. It materi
 Normal rebuilds refresh projection tables while preserving runtime-owned state. `build --fresh` is the explicit destructive reset. The DB is a cache/projection, not an authority source.
 
 See `contracts/RUNTIME_DB.md` and checkpoint `checkpoints/KNOWLEDGE_DB_PORT_01.md`.
+
+### Knowledge runtime
+
+```bash
+python Devos/runtime/knowledge_runtime.py status
+python Devos/runtime/knowledge_runtime.py packet "search terms" --branch project-core
+python Devos/runtime/knowledge_runtime.py packet "lantern" --branch feature-lantern --max-document-chars 4000
+```
+
+The runtime turns the SQLite projection into bounded agent context packets. It resolves branch dependencies, ranks query-relevant documents and effective tasks, includes matching tools, binds source SHA-256 provenance, reports stale projections, and emits a deterministic packet hash.
+
+A missing DB is generated automatically. An existing stale projection is reported but not silently rebuilt; pass `--refresh` when replacement of generated state is intentional.
+
+See `contracts/KNOWLEDGE_RUNTIME.md`, `schemas/context-packet.schema.json`, and checkpoint `checkpoints/KNOWLEDGE_RUNTIME_PORT_01.md`.
 
 ## Core law
 
