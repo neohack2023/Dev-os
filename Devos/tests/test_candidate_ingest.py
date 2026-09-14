@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import shutil
 import tempfile
 import unittest
 import sys
@@ -13,10 +14,11 @@ sys.path.insert(0, str(RUNTIME))
 from build_knowledge_db import build, health, query
 from candidate_ingest import ingest_pack
 from db_runtime import connect_runtime
+from devos import init_instance
 
 FIXTURE = ROOT / "tests" / "fixtures" / "knowledge_db" / "host"
 PACK = ROOT / "knowledge" / "reddit-harvest-03.json"
-AGI_MEMORY_PACK = ROOT / "knowledge" / "agi-memory-delivery-fitness-01.json"
+AGI_MEMORY_PACK_REL = Path("knowledge/agi-memory-delivery-fitness-01.json")
 AGI_MEMORY_RESEARCH = "Devos/research/AGI_MEMORY_DELIVERY_FITNESS_01.md"
 
 
@@ -90,10 +92,21 @@ class CandidateIngestTests(unittest.TestCase):
     def test_agi_memory_pack_materializes_from_repository_projection_and_queries_back(self):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
-        db = Path(temp.name) / "merged-main-materialization.db"
-        host_root = ROOT.parent
+        host_root = Path(temp.name) / "host"
+        devos_root = host_root / "Devos"
+        shutil.copytree(ROOT, devos_root)
 
-        built = build(ROOT, host_root, db, fresh=True)
+        # The standalone DevOS repository is the portable distribution and
+        # intentionally ships without host-owned project/runtime state. Create
+        # an isolated host instance from the merged package before materializing.
+        init_instance(
+            devos_root,
+            scope="devos-self",
+            repository="neohack2023/Dev-os",
+            project_name="DevOS",
+        )
+        db = devos_root / "state" / "devos-knowledge.db"
+        built = build(devos_root, host_root, db, fresh=True)
         self.assertTrue(built["ok"])
 
         projected = query(db, "delivered", limit=20)
@@ -106,7 +119,7 @@ class CandidateIngestTests(unittest.TestCase):
         try:
             result = ingest_pack(
                 connection,
-                json.loads(AGI_MEMORY_PACK.read_text(encoding="utf-8")),
+                json.loads((devos_root / AGI_MEMORY_PACK_REL).read_text(encoding="utf-8")),
             )
             self.assertEqual("STONE-20260914-DEVOS-AGI-MEMORY-DELIVERY-01", result["pack_id"])
             self.assertEqual("project-core", result["branch_key"])
