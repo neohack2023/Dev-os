@@ -36,8 +36,8 @@ class GitHubPolicyBootstrapTests(unittest.TestCase):
         r={'repository':'owner/repo','target_branch':'main','mode':mode,'observed_at':'2026-09-14T00:20:00Z'}
         if mode=='APPLY_AND_VERIFY': r['authorization']={'grant':'GITHUB_POLICY_ADMIN','approved':True}
         return r
-    def test_schema_v8_and_unprotected_audit_blocks_without_writing(self):
-        self.assertEqual(8,CURRENT_SCHEMA_VERSION)
+    def test_schema_v9_and_unprotected_audit_blocks_without_writing(self):
+        self.assertEqual(9,CURRENT_SCHEMA_VERSION)
         out=bootstrap(self.c,FakePolicyGitHub(),self.request())
         self.assertEqual('BLOCKED',out['outcome']); self.assertFalse(out['administrative_write_performed']); self.assertEqual('UNPROTECTED',out['before_policy']['capability'])
     def test_apply_requires_separate_admin_authorization(self):
