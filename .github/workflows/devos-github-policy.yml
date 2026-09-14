@@ -17,7 +17,7 @@ jobs:
         run: python Devos/runtime/devos.py validate --package-only
       - name: Exercise GitHub policy bootstrap
         run: python -m unittest Devos.tests.test_github_policy_bootstrap -v
-      - name: Verify schema v8 policy surfaces
+      - name: Verify schema v9 policy surfaces
         run: |
           python - <<'PY'
           import sqlite3, tempfile
@@ -27,9 +27,10 @@ jobs:
           from db_runtime import connect_runtime, CURRENT_SCHEMA_VERSION
           with tempfile.TemporaryDirectory() as td:
               c=connect_runtime(Path(td)/'policy.db')
-              assert CURRENT_SCHEMA_VERSION == 8
+              assert CURRENT_SCHEMA_VERSION == 9
               names={row[0] for row in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}
               assert 'github_policy_audits' in names
               assert 'github_policy_receipts' in names
+              assert 'knowledge_subjects' in names
               c.close()
           PY
