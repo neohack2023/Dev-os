@@ -9,21 +9,153 @@
     "source_repo_tree_sha": "340e69d2156229188208cb4c5c181da7525175e9"
   },
   "neutralized_subsystems": [
-    {"key":"task_queue","checkpoint":"TASK_QUEUE_PORT_01","runtime":"runtime/task_queue.py","source_blob":"1121c0bd8673c64f7446aa2296fec9998527db06"},
-    {"key":"repo_validator","checkpoint":"REPO_VALIDATOR_PORT_01","runtime":"runtime/repo_validator.py","source_blob":"ff70d5e5a12e3113df35f0642b3c855178bec28a"},
-    {"key":"knowledge_db","checkpoint":"KNOWLEDGE_DB_PORT_01","runtime":["runtime/db_runtime.py","runtime/build_knowledge_db.py"],"schema":"schemas/runtime-db-v1.sql","source_blobs":{"build_knowledge_db.py":"1f1e8b8bc6cc9cbcf1cf0bb8a574a8dfe09587cf","knowledge/schema.sql":"de73b2967a8e682913702bb00fd3ed6f2d57c33c"}},
-    {"key":"knowledge_runtime","checkpoint":"KNOWLEDGE_RUNTIME_PORT_01","runtime":"runtime/knowledge_runtime.py","schema":"schemas/context-packet.schema.json","source_blob":"eeaf9fcfaf611696f15ebd02a72ad55e36e43aca"},
-    {"key":"evidence_runtime","checkpoint":"EVIDENCE_RUNTIME_PORT_01","runtime":["runtime/evidence_runtime.py","runtime/evidence_store.py"],"schemas":["schemas/runtime-db-v2.sql","schemas/evidence-episode.schema.json"]},
-    {"key":"reflection_core","checkpoint":"REFLECTION_CORE_PORT_01","runtime":["runtime/reflection_core.py","runtime/delta_reflection.py","runtime/reflection_store.py"],"schemas":["schemas/runtime-db-v3.sql","schemas/reflection-request.schema.json"]},
-    {"key":"learning_layer","checkpoint":"LEARNING_LAYER_PORT_01","runtime":["runtime/learning_threshold.py","runtime/learning_store.py"],"schema":"schemas/runtime-db-v4.sql"},
-    {"key":"promotion_gate","checkpoint":"PROMOTION_GATE_PORT_01","runtime":"runtime/promotion_gate.py","schemas":["schemas/runtime-db-v5.sql","schemas/promotion-request.schema.json","schemas/promotion-verification.schema.json"]},
-    {"key":"mason_execution","checkpoint":"MASON_EXECUTION_PORT_01","runtime":"runtime/mason_execution.py","schemas":["schemas/runtime-db-v6.sql","schemas/mason-execution-request.schema.json"],"execution_scope":"local-git-fast-forward-only"},
-    {"key":"github_authority_adapter","checkpoint":"GITHUB_AUTHORITY_ADAPTER_PORT_01","runtime":"runtime/github_authority_adapter.py","schemas":["schemas/runtime-db-v7.sql","schemas/github-authority-request.schema.json"],"execution_scope":"github-protected-pr-merge-only"},
-    {"key":"github_policy_bootstrap","checkpoint":"GITHUB_POLICY_BOOTSTRAP_01","runtime":"runtime/github_policy_bootstrap.py","schemas":["schemas/runtime-db-v8.sql","schemas/github-policy-request.schema.json"],"basis":["contracts/GITHUB_POLICY_BOOTSTRAP.md","contracts/GITHUB_AUTHORITY.md"],"execution_scope":"policy-audit-and-branch-protection-bootstrap"},
-    {"key":"host_performance","checkpoint":"HOST_PERFORMANCE_PROBE_01","runtime":"runtime/host_performance.py","schema":"schemas/host-performance.schema.json","execution_scope":"read-only-local-snapshot"},
-    {"key":"candidate_ingest","checkpoint":"REDDIT_CANDIDATE_INGEST_01","runtime":"runtime/candidate_ingest.py","knowledge_pack":"knowledge/reddit-harvest-03.json","execution_scope":"candidate-only-evidence-reflection-learning-ingest"}
+    {
+      "key": "task_queue",
+      "checkpoint": "TASK_QUEUE_PORT_01",
+      "runtime": "runtime/task_queue.py",
+      "source_blob": "1121c0bd8673c64f7446aa2296fec9998527db06"
+    },
+    {
+      "key": "repo_validator",
+      "checkpoint": "REPO_VALIDATOR_PORT_01",
+      "runtime": "runtime/repo_validator.py",
+      "source_blob": "ff70d5e5a12e3113df35f0642b3c855178bec28a"
+    },
+    {
+      "key": "knowledge_db",
+      "checkpoint": "KNOWLEDGE_DB_PORT_01",
+      "runtime": [
+        "runtime/db_runtime.py",
+        "runtime/build_knowledge_db.py"
+      ],
+      "schema": "schemas/runtime-db-v1.sql",
+      "source_blobs": {
+        "build_knowledge_db.py": "1f1e8b8bc6cc9cbcf1cf0bb8a574a8dfe09587cf",
+        "knowledge/schema.sql": "de73b2967a8e682913702bb00fd3ed6f2d57c33c"
+      }
+    },
+    {
+      "key": "knowledge_runtime",
+      "checkpoint": "KNOWLEDGE_RUNTIME_PORT_01",
+      "runtime": "runtime/knowledge_runtime.py",
+      "schema": "schemas/context-packet.schema.json",
+      "source_blob": "eeaf9fcfaf611696f15ebd02a72ad55e36e43aca"
+    },
+    {
+      "key": "evidence_runtime",
+      "checkpoint": "EVIDENCE_RUNTIME_PORT_01",
+      "runtime": [
+        "runtime/evidence_runtime.py",
+        "runtime/evidence_store.py"
+      ],
+      "schemas": [
+        "schemas/runtime-db-v2.sql",
+        "schemas/evidence-episode.schema.json"
+      ]
+    },
+    {
+      "key": "reflection_core",
+      "checkpoint": "REFLECTION_CORE_PORT_01",
+      "runtime": [
+        "runtime/reflection_core.py",
+        "runtime/delta_reflection.py",
+        "runtime/reflection_store.py"
+      ],
+      "schemas": [
+        "schemas/runtime-db-v3.sql",
+        "schemas/reflection-request.schema.json"
+      ]
+    },
+    {
+      "key": "learning_layer",
+      "checkpoint": "LEARNING_LAYER_PORT_01",
+      "runtime": [
+        "runtime/learning_threshold.py",
+        "runtime/learning_store.py"
+      ],
+      "schema": "schemas/runtime-db-v4.sql"
+    },
+    {
+      "key": "promotion_gate",
+      "checkpoint": "PROMOTION_GATE_PORT_01",
+      "runtime": "runtime/promotion_gate.py",
+      "schemas": [
+        "schemas/runtime-db-v5.sql",
+        "schemas/promotion-request.schema.json",
+        "schemas/promotion-verification.schema.json"
+      ]
+    },
+    {
+      "key": "mason_execution",
+      "checkpoint": "MASON_EXECUTION_PORT_01",
+      "runtime": "runtime/mason_execution.py",
+      "schemas": [
+        "schemas/runtime-db-v6.sql",
+        "schemas/mason-execution-request.schema.json"
+      ],
+      "execution_scope": "local-git-fast-forward-only"
+    },
+    {
+      "key": "github_authority_adapter",
+      "checkpoint": "GITHUB_AUTHORITY_ADAPTER_PORT_01",
+      "runtime": "runtime/github_authority_adapter.py",
+      "schemas": [
+        "schemas/runtime-db-v7.sql",
+        "schemas/github-authority-request.schema.json"
+      ],
+      "execution_scope": "github-protected-pr-merge-only"
+    },
+    {
+      "key": "github_policy_bootstrap",
+      "checkpoint": "GITHUB_POLICY_BOOTSTRAP_01",
+      "runtime": "runtime/github_policy_bootstrap.py",
+      "schemas": [
+        "schemas/runtime-db-v8.sql",
+        "schemas/github-policy-request.schema.json"
+      ],
+      "basis": [
+        "contracts/GITHUB_POLICY_BOOTSTRAP.md",
+        "contracts/GITHUB_AUTHORITY.md"
+      ],
+      "execution_scope": "policy-audit-and-branch-protection-bootstrap"
+    },
+    {
+      "key": "host_performance",
+      "checkpoint": "HOST_PERFORMANCE_PROBE_01",
+      "runtime": "runtime/host_performance.py",
+      "schema": "schemas/host-performance.schema.json",
+      "execution_scope": "read-only-local-snapshot"
+    },
+    {
+      "key": "candidate_ingest",
+      "checkpoint": "REDDIT_CANDIDATE_INGEST_01",
+      "runtime": "runtime/candidate_ingest.py",
+      "knowledge_pack": "knowledge/reddit-harvest-03.json",
+      "execution_scope": "candidate-only-evidence-reflection-learning-ingest"
+    },
+    {
+      "key": "retrieval_ablation",
+      "checkpoint": "DEVOS_RETRIEVAL_ABLATION_01",
+      "runtime": "runtime/retrieval_ablation.py",
+      "contract": "contracts/RETRIEVAL_ABLATION.md",
+      "benchmark_fixture": "tests/fixtures/retrieval_ablation/benchmark.json",
+      "execution_scope": "read-only-two-arm-retrieval-benchmark"
+    }
   ],
-  "generated_instance_files": ["project.json","branches.jsonl","tasks.jsonl","task-events.jsonl","opportunities.jsonl","tools.jsonl","governance-lock.json","research-policy.json"],
-  "generated_runtime_state": ["state/devos-knowledge.db","state/devos-knowledge.db-wal","state/devos-knowledge.db-shm"],
+  "generated_instance_files": [
+    "project.json",
+    "branches.jsonl",
+    "tasks.jsonl",
+    "task-events.jsonl",
+    "opportunities.jsonl",
+    "tools.jsonl",
+    "governance-lock.json",
+    "research-policy.json"
+  ],
+  "generated_runtime_state": [
+    "state/devos-knowledge.db",
+    "state/devos-knowledge.db-wal",
+    "state/devos-knowledge.db-shm"
+  ],
   "state_policy": "host-specific state is never shipped as a distribution default"
 }

@@ -1,0 +1,118 @@
+{
+  "benchmark_id": "DEVOS_RETRIEVAL_ABLATION_01",
+  "description": "Frozen two-arm retrieval workload for scope-safe lexical versus SQLite FTS5 BM25 comparison.",
+  "queries": [
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "query": "lantern_mode",
+      "query_id": "dev-identifier",
+      "relevant": [
+        "docs/alpha/runtime.md#Alpha Runtime"
+      ],
+      "split": "development"
+    },
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "query": "deterministic state",
+      "query_id": "dev-natural-language",
+      "relevant": [
+        "docs/alpha/runtime.md#Alpha Runtime"
+      ],
+      "split": "development"
+    },
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "query": "priority beacon",
+      "query_id": "dev-title-weight",
+      "relevant": [
+        "docs/alpha/priority.md#Priority Beacon"
+      ],
+      "split": "development"
+    },
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "query": "shared contract",
+      "query_id": "dev-dependency",
+      "relevant": [
+        "docs/shared/foundation.md#Shared Foundation"
+      ],
+      "split": "development"
+    },
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "query": "retry_guard-v2",
+      "query_id": "dev-hyphen-underscore",
+      "relevant": [
+        "docs/alpha/runtime.md#Alpha Runtime"
+      ],
+      "split": "development"
+    },
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "query": "alpha",
+      "query_id": "dev-path-term",
+      "relevant": [
+        "docs/alpha/priority.md#Priority Beacon",
+        "docs/alpha/runtime.md#Alpha Runtime"
+      ],
+      "split": "development"
+    },
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "query": "vector lantern",
+      "query_id": "holdout-sibling-decoy",
+      "relevant": [
+        "docs/alpha/runtime.md#Alpha Runtime"
+      ],
+      "split": "holdout"
+    },
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "query": "beacon",
+      "query_id": "holdout-direct-tier",
+      "relevant": [
+        "docs/alpha/priority.md#Priority Beacon",
+        "docs/alpha/runtime.md#Alpha Runtime"
+      ],
+      "split": "holdout"
+    },
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "query": "NEAR",
+      "query_id": "holdout-operator-word",
+      "relevant": [
+        "docs/alpha/priority.md#Priority Beacon"
+      ],
+      "split": "holdout"
+    },
+    {
+      "branches": [
+        "feature-alpha"
+      ],
+      "expect_no_results": true,
+      "query": "absent_zebra_token",
+      "query_id": "holdout-empty",
+      "relevant": [],
+      "split": "holdout"
+    }
+  ],
+  "schema": "devos-retrieval-ablation/v1"
+}

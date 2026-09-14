@@ -1,0 +1,3 @@
+{"branch_key":"project-core","scope_key":"retrieval-fixture","title":"Shared Core","status":"active","dependencies":[],"surfaces":["docs/shared"]}
+{"branch_key":"feature-alpha","scope_key":"retrieval-fixture","title":"Alpha Feature","status":"active","dependencies":["project-core"],"surfaces":["docs/alpha"]}
+{"branch_key":"sibling-beta","scope_key":"retrieval-fixture","title":"Beta Sibling","status":"active","dependencies":["project-core"],"surfaces":["docs/beta"]}
