@@ -129,16 +129,21 @@ class CandidateIngestTests(unittest.TestCase):
             self.assertTrue(all(row["maturity_stage"] == "RECOGNITION" for row in result["entries"]))
             self.assertTrue(all(not row["validated_for_transfer"] for row in result["entries"]))
 
-            capability_keys = {
-                json.loads(row[0])["capability_key"]
-                for row in connection.execute(
-                    "SELECT payload_json FROM learning_capabilities ORDER BY capability_id"
-                ).fetchall()
+            entry_capability_ids = {
+                row["entry_id"]: row["capability_id"] for row in result["entries"]
             }
             self.assertEqual(
-                {"devos.context.delivery_fitness", "devos.metadata.structural_capture"},
-                capability_keys,
+                {"delivered-context-fitness", "structural-metadata-over-advisory"},
+                set(entry_capability_ids),
             )
+            persisted_capability_ids = {
+                row[0]
+                for row in connection.execute(
+                    "SELECT capability_id FROM learning_capabilities ORDER BY capability_id"
+                ).fetchall()
+            }
+            self.assertEqual(set(entry_capability_ids.values()), persisted_capability_ids)
+
             counts = {
                 table: connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
                 for table in (
@@ -162,7 +167,7 @@ class CandidateIngestTests(unittest.TestCase):
             "promotion_state": result["promotion_state"],
             "maturity_stages": [row["maturity_stage"] for row in result["entries"]],
             "validated_for_transfer": [row["validated_for_transfer"] for row in result["entries"]],
-            "capability_keys": sorted(capability_keys),
+            "entry_capability_ids": entry_capability_ids,
             "runtime_counts": counts,
             "query_paths": sorted({row["path"] for row in projected}),
             "health": health(db),
