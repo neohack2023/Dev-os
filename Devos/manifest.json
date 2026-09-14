@@ -1,6 +1,6 @@
 {
   "name": "DevOS",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "portable_root": "Devos",
   "origin": {
     "repository": "neohack2023/project-orath",
@@ -24,10 +24,7 @@
     {
       "key": "knowledge_db",
       "checkpoint": "KNOWLEDGE_DB_PORT_01",
-      "runtime": [
-        "runtime/db_runtime.py",
-        "runtime/build_knowledge_db.py"
-      ],
+      "runtime": ["runtime/db_runtime.py", "runtime/build_knowledge_db.py"],
       "schema": "schemas/runtime-db-v1.sql",
       "source_blobs": {
         "build_knowledge_db.py": "1f1e8b8bc6cc9cbcf1cf0bb8a574a8dfe09587cf",
@@ -44,80 +41,57 @@
     {
       "key": "evidence_runtime",
       "checkpoint": "EVIDENCE_RUNTIME_PORT_01",
-      "runtime": [
-        "runtime/evidence_runtime.py",
-        "runtime/evidence_store.py"
-      ],
-      "schemas": [
-        "schemas/runtime-db-v2.sql",
-        "schemas/evidence-episode.schema.json"
-      ]
+      "runtime": ["runtime/evidence_runtime.py", "runtime/evidence_store.py"],
+      "schemas": ["schemas/runtime-db-v2.sql", "schemas/evidence-episode.schema.json"]
     },
     {
       "key": "reflection_core",
       "checkpoint": "REFLECTION_CORE_PORT_01",
-      "runtime": [
-        "runtime/reflection_core.py",
-        "runtime/delta_reflection.py",
-        "runtime/reflection_store.py"
-      ],
-      "schemas": [
-        "schemas/runtime-db-v3.sql",
-        "schemas/reflection-request.schema.json"
-      ]
+      "runtime": ["runtime/reflection_core.py", "runtime/delta_reflection.py", "runtime/reflection_store.py"],
+      "schemas": ["schemas/runtime-db-v3.sql", "schemas/reflection-request.schema.json"]
     },
     {
       "key": "learning_layer",
       "checkpoint": "LEARNING_LAYER_PORT_01",
-      "runtime": [
-        "runtime/learning_threshold.py",
-        "runtime/learning_store.py"
-      ],
+      "runtime": ["runtime/learning_threshold.py", "runtime/learning_store.py"],
       "schema": "schemas/runtime-db-v4.sql"
     },
     {
       "key": "promotion_gate",
       "checkpoint": "PROMOTION_GATE_PORT_01",
       "runtime": "runtime/promotion_gate.py",
-      "schemas": [
-        "schemas/runtime-db-v5.sql",
-        "schemas/promotion-request.schema.json",
-        "schemas/promotion-verification.schema.json"
-      ]
+      "schemas": ["schemas/runtime-db-v5.sql", "schemas/promotion-request.schema.json", "schemas/promotion-verification.schema.json"]
     },
     {
       "key": "mason_execution",
       "checkpoint": "MASON_EXECUTION_PORT_01",
       "runtime": "runtime/mason_execution.py",
-      "schemas": [
-        "schemas/runtime-db-v6.sql",
-        "schemas/mason-execution-request.schema.json"
-      ],
+      "schemas": ["schemas/runtime-db-v6.sql", "schemas/mason-execution-request.schema.json"],
       "execution_scope": "local-git-fast-forward-only"
     },
     {
       "key": "github_authority_adapter",
       "checkpoint": "GITHUB_AUTHORITY_ADAPTER_PORT_01",
       "runtime": "runtime/github_authority_adapter.py",
-      "schemas": [
-        "schemas/runtime-db-v7.sql",
-        "schemas/github-authority-request.schema.json"
-      ],
+      "schemas": ["schemas/runtime-db-v7.sql", "schemas/github-authority-request.schema.json"],
       "execution_scope": "github-protected-pr-merge-only"
     },
     {
       "key": "github_policy_bootstrap",
       "checkpoint": "GITHUB_POLICY_BOOTSTRAP_01",
       "runtime": "runtime/github_policy_bootstrap.py",
-      "schemas": [
-        "schemas/runtime-db-v8.sql",
-        "schemas/github-policy-request.schema.json"
-      ],
-      "basis": [
-        "contracts/GITHUB_POLICY_BOOTSTRAP.md",
-        "contracts/GITHUB_AUTHORITY.md"
-      ],
+      "schemas": ["schemas/runtime-db-v8.sql", "schemas/github-policy-request.schema.json"],
+      "basis": ["contracts/GITHUB_POLICY_BOOTSTRAP.md", "contracts/GITHUB_AUTHORITY.md"],
       "execution_scope": "policy-audit-and-branch-protection-bootstrap"
+    },
+    {
+      "key": "knowledge_state_lineage",
+      "checkpoint": "KNOWLEDGE_STATE_LINEAGE_01",
+      "runtime": "runtime/knowledge_lineage.py",
+      "schema": "schemas/runtime-db-v9.sql",
+      "contract": "contracts/KNOWLEDGE_STATE_LINEAGE.md",
+      "research": "research/KNOWLEDGE_STATE_LINEAGE_01.md",
+      "execution_scope": "stable-identity-immutable-assertion-lineage"
     },
     {
       "key": "host_performance",
@@ -143,19 +117,10 @@
     }
   ],
   "generated_instance_files": [
-    "project.json",
-    "branches.jsonl",
-    "tasks.jsonl",
-    "task-events.jsonl",
-    "opportunities.jsonl",
-    "tools.jsonl",
-    "governance-lock.json",
-    "research-policy.json"
+    "project.json", "branches.jsonl", "tasks.jsonl", "task-events.jsonl", "opportunities.jsonl", "tools.jsonl", "governance-lock.json", "research-policy.json"
   ],
   "generated_runtime_state": [
-    "state/devos-knowledge.db",
-    "state/devos-knowledge.db-wal",
-    "state/devos-knowledge.db-shm"
+    "state/devos-knowledge.db", "state/devos-knowledge.db-wal", "state/devos-knowledge.db-shm"
   ],
   "state_policy": "host-specific state is never shipped as a distribution default"
 }
