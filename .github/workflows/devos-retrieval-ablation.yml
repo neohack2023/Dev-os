@@ -1,0 +1,47 @@
+name: DevOS Retrieval Ablation
+
+on:
+  push:
+    branches: ["main", "devos/**"]
+  pull_request:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    env:
+      CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run frozen two-arm retrieval benchmark
+        run: |
+          python Devos/runtime/retrieval_ablation.py \
+            --benchmark Devos/tests/fixtures/retrieval_ablation/benchmark.json \
+            --candidate-revision "$CANDIDATE_SHA" \
+            --devos-root Devos/tests/fixtures/retrieval_ablation/host/Devos \
+            --host-root Devos/tests/fixtures/retrieval_ablation/host \
+            --db /tmp/devos-retrieval-ablation.db \
+            --fresh \
+            --output /tmp/devos-retrieval-ablation-receipt.json
+      - name: Verify benchmark governance
+        run: |
+          python - <<'PY'
+          import json, os
+          receipt = json.load(open('/tmp/devos-retrieval-ablation-receipt.json', encoding='utf-8'))
+          assert receipt['candidate_revision'] == os.environ['CANDIDATE_SHA']
+          assert set(receipt['arms']) == {'LEXICAL_V1', 'FTS5_BM25_V1'}
+          assert receipt['authority_effect'] == 'NONE'
+          assert receipt['promotion_state'] == 'BENCHMARK_ONLY'
+          assert receipt['evaluations']['LEXICAL_V1']['aggregate']['scope_leakage_count'] == 0
+          assert receipt['evaluations']['FTS5_BM25_V1']['aggregate']['scope_leakage_count'] == 0
+          assert receipt['evaluations']['LEXICAL_V1']['aggregate']['recall_at_5'] == 1.0
+          assert receipt['evaluations']['FTS5_BM25_V1']['aggregate']['recall_at_5'] == 1.0
+          assert receipt['third_arm_gate']['eligible_for_research'] is False
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: devos-retrieval-ablation-receipt
+          path: /tmp/devos-retrieval-ablation-receipt.json
+          if-no-files-found: error
