@@ -33,11 +33,11 @@ class ReflectionCoreTests(unittest.TestCase):
 class ReflectionStoreTests(unittest.TestCase):
     def _prepare(self,db:Path):
         build(HOST_FIXTURE/"Devos",HOST_FIXTURE,db); episode=json.loads(EVIDENCE_FIXTURE.read_text(encoding="utf-8")); request=json.loads(REQUEST_FIXTURE.read_text(encoding="utf-8")); connection=connect_runtime(db); evidence=persist_episode(connection,episode); return connection,evidence["delta"]["delta_id"],request
-    def test_schema_v8_and_reflection_admission(self):
+    def test_schema_v9_and_reflection_admission(self):
         with tempfile.TemporaryDirectory() as td:
             db=Path(td)/"runtime.db"; connection,delta_id,request=self._prepare(db)
             try:
-                result=persist_reflection(connection,delta_id,request); reflection=result["reflection"]; self.assertFalse(result["replayed"]); self.assertEqual("feature-lantern",reflection["branch_key"]); self.assertEqual("NONE",reflection["authority_effect"]); self.assertEqual("CANDIDATE_ONLY",reflection["promotion_state"]); self.assertEqual(8,CURRENT_SCHEMA_VERSION); self.assertEqual(8,connection.execute("PRAGMA user_version").fetchone()[0])
+                result=persist_reflection(connection,delta_id,request); reflection=result["reflection"]; self.assertFalse(result["replayed"]); self.assertEqual("feature-lantern",reflection["branch_key"]); self.assertEqual("NONE",reflection["authority_effect"]); self.assertEqual("CANDIDATE_ONLY",reflection["promotion_state"]); self.assertEqual(9,CURRENT_SCHEMA_VERSION); self.assertEqual(9,connection.execute("PRAGMA user_version").fetchone()[0])
             finally: connection.close()
     def test_identical_replay_is_idempotent(self):
         with tempfile.TemporaryDirectory() as td:

@@ -24,7 +24,7 @@ class EvidenceStoreTests(unittest.TestCase):
     def test_current_schema_and_episode_admission(self):
         db=self.make_db(); connection=connect_runtime(db)
         try:
-            self.assertEqual(8,CURRENT_SCHEMA_VERSION); result=persist_episode(connection,self.load_episode()); self.assertEqual('CONVERGENCE',result['triangulation_state']); self.assertEqual('NONE',result['authority_effect']); self.assertEqual(2,connection.execute('SELECT count(*) FROM evidence_roots').fetchone()[0]); self.assertEqual(2,connection.execute('SELECT count(*) FROM atomic_findings').fetchone()[0]); self.assertEqual(1,connection.execute('SELECT count(*) FROM evidence_delta_packets').fetchone()[0])
+            self.assertEqual(9,CURRENT_SCHEMA_VERSION); result=persist_episode(connection,self.load_episode()); self.assertEqual('CONVERGENCE',result['triangulation_state']); self.assertEqual('NONE',result['authority_effect']); self.assertEqual(2,connection.execute('SELECT count(*) FROM evidence_roots').fetchone()[0]); self.assertEqual(2,connection.execute('SELECT count(*) FROM atomic_findings').fetchone()[0]); self.assertEqual(1,connection.execute('SELECT count(*) FROM evidence_delta_packets').fetchone()[0])
         finally: connection.close()
     def test_identical_replay_is_idempotent(self):
         db=self.make_db(); episode=self.load_episode(); connection=connect_runtime(db)

@@ -19,13 +19,13 @@ jobs:
         run: python Devos/runtime/devos.py validate --package-only
       - name: Exercise GitHub authority state machine
         run: python -m unittest discover -s Devos/tests -p 'test_github_authority_adapter.py' -v
-      - name: Verify schema v8 and authority surfaces
+      - name: Verify schema v9 and authority surfaces
         run: |
           python - <<'PY'
           import sys
           sys.path.insert(0, "Devos/runtime")
           from db_runtime import CURRENT_SCHEMA_VERSION
-          assert CURRENT_SCHEMA_VERSION == 8
+          assert CURRENT_SCHEMA_VERSION == 9
           from github_authority_adapter import _REMOTE_EFFECT
           assert _REMOTE_EFFECT == "GITHUB_TARGET_BRANCH_UPDATED"
           PY
