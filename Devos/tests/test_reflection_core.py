@@ -75,7 +75,7 @@ class ReflectionStoreTests(unittest.TestCase):
         delta_id = evidence["delta"]["delta_id"]
         return connection, delta_id, request
 
-    def test_schema_v6_and_reflection_admission(self):
+    def test_schema_v7_and_reflection_admission(self):
         with tempfile.TemporaryDirectory() as td:
             db = Path(td) / "runtime.db"
             connection, delta_id, request = self._prepare(db)
@@ -86,8 +86,8 @@ class ReflectionStoreTests(unittest.TestCase):
                 self.assertEqual("feature-lantern", reflection["branch_key"])
                 self.assertEqual("NONE", reflection["authority_effect"])
                 self.assertEqual("CANDIDATE_ONLY", reflection["promotion_state"])
-                self.assertEqual(6, CURRENT_SCHEMA_VERSION)
-                self.assertEqual(6, connection.execute("PRAGMA user_version").fetchone()[0])
+                self.assertEqual(7, CURRENT_SCHEMA_VERSION)
+                self.assertEqual(7, connection.execute("PRAGMA user_version").fetchone()[0])
             finally:
                 connection.close()
 
