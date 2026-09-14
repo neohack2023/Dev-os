@@ -34,10 +34,10 @@ class PromotionGateTests(unittest.TestCase):
         if review: payload["review"]={"source":"github-review","status":"approved","revision":REVISION,"self_review":False}
         if canary: payload["canary"]={"source":"github-environment","status":"success","revision":REVISION}
         return payload
-    def test_schema_v8_and_locked_stone_envelope(self):
+    def test_schema_v9_and_locked_stone_envelope(self):
         db,connection,capability_id=self._context()
         try:
-            self.assertEqual(8,CURRENT_SCHEMA_VERSION); result=persist_envelope(connection,self._request(capability_id)); envelope=result["envelope"]; self.assertEqual("LOCKED",envelope["stone_state"]); self.assertEqual("HANDOFF_REQUIRED",envelope["mason_state"]); self.assertEqual("TRANSFER",envelope["source_learning"]["maturity_stage"]); self.assertTrue(envelope["source_learning"]["evidence_refs"]); self.assertEqual("NONE",envelope["authority_effect"]); self.assertFalse(envelope["write_authorized"])
+            self.assertEqual(9,CURRENT_SCHEMA_VERSION); result=persist_envelope(connection,self._request(capability_id)); envelope=result["envelope"]; self.assertEqual("LOCKED",envelope["stone_state"]); self.assertEqual("HANDOFF_REQUIRED",envelope["mason_state"]); self.assertEqual("TRANSFER",envelope["source_learning"]["maturity_stage"]); self.assertTrue(envelope["source_learning"]["evidence_refs"]); self.assertEqual("NONE",envelope["authority_effect"]); self.assertFalse(envelope["write_authorized"])
         finally: connection.close()
     def test_promotion_requires_regression_safe_learning(self):
         db,connection,capability_id=self._context(regression_safe=False)
