@@ -148,10 +148,19 @@ class KnowledgeLineageTests(unittest.TestCase):
         sid = self.subject()
         a1 = self.assertion(sid, {"value": "3.11"}, "2026-09-14T10:01:00Z")
         a2 = self.assertion(sid, {"value": "3.12"}, "2026-09-14T10:02:00Z")
+        a3 = lineage.append_assertion(
+            self.connection,
+            subject_id=sid,
+            claim={"value": "3.11"},
+            evidence_refs=["ci:portable-validation"],
+            recorded_at="2026-09-14T10:03:00Z",
+        )
         with self.assertRaisesRegex(ValueError, "CONFIRMS requires identical"):
             lineage.link_assertions(self.connection, relation="CONFIRMS", from_assertion_id=a2, to_assertion_id=a1)
         with self.assertRaisesRegex(ValueError, "SUPERSEDES requires different"):
-            lineage.link_assertions(self.connection, relation="SUPERSEDES", from_assertion_id=a1, to_assertion_id=a1)
+            lineage.link_assertions(self.connection, relation="SUPERSEDES", from_assertion_id=a3, to_assertion_id=a1)
+        with self.assertRaisesRegex(ValueError, "CONFLICTS requires different"):
+            lineage.link_assertions(self.connection, relation="CONFLICTS", from_assertion_id=a3, to_assertion_id=a1)
 
 
 if __name__ == "__main__":
