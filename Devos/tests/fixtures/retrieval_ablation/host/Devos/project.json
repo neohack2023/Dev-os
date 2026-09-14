@@ -1,0 +1,1 @@
+{"schema_version":1,"project_name":"Retrieval Ablation Fixture","scope_key":"retrieval-fixture","repository":"owner/retrieval-fixture","devos_version":"0.12.0","authority":{"repository_execution":"github","external_memory":"configured-by-host"},"paths":{"devos":"Devos","runtime_state":"Devos/state","receipts":"Devos/receipts"}}
