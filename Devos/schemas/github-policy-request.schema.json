@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "devos://schemas/github-policy-request.schema.json",
+  "title": "DevOS GitHub policy bootstrap request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["repository", "target_branch", "mode", "observed_at"],
+  "properties": {
+    "repository": {"type": "string", "minLength": 3},
+    "target_branch": {"type": "string", "minLength": 1},
+    "mode": {"enum": ["AUDIT_ONLY", "APPLY_AND_VERIFY"]},
+    "observed_at": {"type": "string", "minLength": 1},
+    "authorization": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "grant": {"const": "GITHUB_POLICY_ADMIN"},
+        "approved": {"const": true}
+      }
+    }
+  }
+}
