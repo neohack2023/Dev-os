@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DevOS GitHub Authority Request",
+  "type": "object",
+  "required": ["observed_at", "candidate_branch", "authorization"],
+  "properties": {
+    "observed_at": {"type": "string", "minLength": 1},
+    "candidate_branch": {"type": "string", "minLength": 1},
+    "authorization": {
+      "type": "object",
+      "required": ["authorization_id", "source", "actor", "observed_at", "grant", "mason_receipt_id", "candidate_revision", "repository", "target_branch", "candidate_branch", "approved"],
+      "properties": {
+        "authorization_id": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "actor": {"type": "string", "minLength": 1},
+        "observed_at": {"type": "string", "minLength": 1},
+        "grant": {"const": "GITHUB_PR_MERGE"},
+        "mason_receipt_id": {"type": "string", "minLength": 1},
+        "candidate_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "repository": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+        "target_branch": {"type": "string", "minLength": 1},
+        "candidate_branch": {"type": "string", "minLength": 1},
+        "approved": {"const": true}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
