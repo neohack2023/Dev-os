@@ -93,7 +93,11 @@ class GitHubClient:
             result = self.request("GET", f"/repos/{repository}/branches/{urllib.parse.quote(branch, safe='')}/protection")
             return result if isinstance(result, dict) else None
         except ValueError as exc:
-            if "(404)" in str(exc):
+            # Active rulesets are observable with metadata-read access. Legacy branch
+            # protection details can require stronger administration-read permission.
+            # Treat 403/404 as unavailable supplemental policy, then let observe_policy
+            # fail closed only when the active rules are also insufficient.
+            if "(403)" in str(exc) or "(404)" in str(exc):
                 return None
             raise
 
