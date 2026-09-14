@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DevOS Host Performance Snapshot",
+  "type": "object",
+  "required": ["schema_version", "captured_at_utc", "host", "cpu", "memory", "disks", "pressure", "warnings", "provenance"],
+  "properties": {
+    "schema_version": {"const": "devos.host_performance.v1"},
+    "captured_at_utc": {"type": "string"},
+    "host": {"type": "object"},
+    "cpu": {
+      "type": "object",
+      "required": ["logical_processors", "sample_ms", "used_percent", "load_average"]
+    },
+    "memory": {
+      "type": "object",
+      "required": ["total_bytes", "available_bytes", "used_bytes", "used_percent"]
+    },
+    "disks": {"type": "array"},
+    "uptime_seconds": {"type": ["number", "null"]},
+    "process_count": {"type": ["integer", "null"]},
+    "pressure": {
+      "type": "object",
+      "required": ["level", "peak_percent", "disk_max_used_percent"],
+      "properties": {
+        "level": {"enum": ["NORMAL", "ELEVATED", "HIGH", "CRITICAL"]}
+      }
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "provenance": {
+      "type": "object",
+      "required": ["collector", "mode", "authority_effect"],
+      "properties": {
+        "mode": {"const": "read_only_local"},
+        "authority_effect": {"const": "NONE"}
+      }
+    }
+  },
+  "additionalProperties": true
+}
