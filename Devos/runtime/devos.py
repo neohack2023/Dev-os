@@ -4,7 +4,7 @@ import argparse, hashlib, importlib.util, json
 from pathlib import Path
 from typing import Any
 
-PACKAGE_VERSION = "0.11.0"
+PACKAGE_VERSION = "0.12.0"
 INSTANCE_FILES = (
     "project.json", "branches.jsonl", "tasks.jsonl", "task-events.jsonl",
     "opportunities.jsonl", "tools.jsonl", "governance-lock.json", "research-policy.json",
@@ -63,24 +63,24 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
         "runtime/evidence_runtime.py", "runtime/evidence_store.py",
         "runtime/reflection_core.py", "runtime/delta_reflection.py", "runtime/reflection_store.py",
         "runtime/learning_threshold.py", "runtime/learning_store.py", "runtime/promotion_gate.py",
-        "runtime/mason_execution.py", "runtime/github_authority_adapter.py",
+        "runtime/mason_execution.py", "runtime/github_authority_adapter.py", "runtime/github_policy_bootstrap.py",
         "templates/project.json", "templates/branches.jsonl",
         "contracts/STONE.md", "contracts/MASON.md", "contracts/SELF_IMPROVEMENT.md",
         "contracts/TASK_QUEUE.md", "contracts/REPO_VALIDATION.md", "contracts/RUNTIME_DB.md",
         "contracts/KNOWLEDGE_RUNTIME.md", "contracts/EVIDENCE_RUNTIME.md", "contracts/REFLECTION_CORE.md",
         "contracts/LEARNING_LAYER.md", "contracts/PROMOTION_GATE.md", "contracts/MASON_EXECUTION.md",
-        "contracts/GITHUB_AUTHORITY.md",
+        "contracts/GITHUB_AUTHORITY.md", "contracts/GITHUB_POLICY_BOOTSTRAP.md",
         "schemas/task.schema.json", "schemas/task-event.schema.json", "schemas/runtime-db-v1.sql",
         "schemas/runtime-db-v2.sql", "schemas/runtime-db-v3.sql", "schemas/runtime-db-v4.sql",
-        "schemas/runtime-db-v5.sql", "schemas/runtime-db-v6.sql", "schemas/runtime-db-v7.sql",
+        "schemas/runtime-db-v5.sql", "schemas/runtime-db-v6.sql", "schemas/runtime-db-v7.sql", "schemas/runtime-db-v8.sql",
         "schemas/context-packet.schema.json", "schemas/evidence-episode.schema.json",
         "schemas/reflection-request.schema.json", "schemas/promotion-request.schema.json",
         "schemas/promotion-verification.schema.json", "schemas/mason-execution-request.schema.json",
-        "schemas/github-authority-request.schema.json",
+        "schemas/github-authority-request.schema.json", "schemas/github-policy-request.schema.json",
         "tests/test_task_queue.py", "tests/test_repo_validator.py", "tests/test_knowledge_db.py",
         "tests/test_knowledge_runtime.py", "tests/test_evidence_runtime.py", "tests/test_reflection_core.py",
         "tests/test_learning_layer.py", "tests/test_promotion_gate.py", "tests/test_mason_execution.py",
-        "tests/test_github_authority_adapter.py",
+        "tests/test_github_authority_adapter.py", "tests/test_github_policy_bootstrap.py",
         "tests/fixtures/task_queue/tasks.jsonl", "tests/fixtures/task_queue/task-events.jsonl",
         "tests/fixtures/task_queue/branches.jsonl",
         "tests/fixtures/repo_validator/host/Devos/project.json",
@@ -103,7 +103,7 @@ def validate(devos_root: Path, package_only: bool = False) -> list[str]:
         "checkpoints/EVIDENCE_RUNTIME_PORT_01.md", "checkpoints/REFLECTION_CORE_PORT_01.md",
         "checkpoints/LEARNING_LAYER_PORT_01.md", "checkpoints/PROMOTION_GATE_PORT_01.md",
         "checkpoints/MASON_EXECUTION_PORT_01.md", "checkpoints/GITHUB_AUTHORITY_ADAPTER_PORT_01.md",
-        "state/.gitignore",
+        "checkpoints/GITHUB_POLICY_BOOTSTRAP_01.md", "state/.gitignore",
     ]
     for rel in required:
         if not (devos_root / rel).is_file():
