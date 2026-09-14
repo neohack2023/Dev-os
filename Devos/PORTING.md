@@ -86,7 +86,28 @@ python Devos/runtime/mason_execution.py \
   --observed-at <timestamp>
 ```
 
-13. Wire host CI to package validation plus applicable subsystem tests/build/packet/evidence/reflection/learning/promotion/MASON checks.
+13. When remote GitHub authority is intended, ensure the exact candidate commit already exists on a candidate branch, configure governed target-branch protection/rulesets, provide a GitHub token through `GITHUB_TOKEN` (or another explicitly selected environment variable), then prepare/open/verify/merge through the GitHub authority adapter:
+
+```bash
+python Devos/runtime/github_authority_adapter.py \
+  --db Devos/state/devos-knowledge.db \
+  prepare --mason-receipt <mason-receipt-id> \
+  path/to/github-authority-request.json
+
+python Devos/runtime/github_authority_adapter.py \
+  --db Devos/state/devos-knowledge.db \
+  open-pr --plan <github-authority-plan-id> --observed-at <timestamp>
+
+python Devos/runtime/github_authority_adapter.py \
+  --db Devos/state/devos-knowledge.db \
+  verify --plan <github-authority-plan-id>
+
+python Devos/runtime/github_authority_adapter.py \
+  --db Devos/state/devos-knowledge.db \
+  merge --plan <github-authority-plan-id> --observed-at <timestamp>
+```
+
+14. Wire host CI to package validation plus applicable subsystem tests/build/packet/evidence/reflection/learning/promotion/MASON/GitHub-authority checks. Do not put a write-capable GitHub token into generic unit-test fixtures; network-free fake-client tests cover the authority state machine.
 
 ## Package-owned vs instance-owned
 
@@ -98,7 +119,7 @@ Receipts and runtime databases are host state. They must not be copied from one 
 
 ## Knowledge DB rebuild boundary
 
-A normal knowledge DB build replaces only repository-derived projection tables and preserves durable runtime-owned state such as `runtime_kv`, evidence tables, reflection candidates, learning procedures, evaluations, experiences, capabilities, capability lifecycle events, promotion envelopes/decisions, and MASON execution plans/receipts. Use `build --fresh` only when destructive reset is intended.
+A normal knowledge DB build replaces only repository-derived projection tables and preserves durable runtime-owned state such as `runtime_kv`, evidence tables, reflection candidates, learning procedures, evaluations, experiences, capabilities, capability lifecycle events, promotion envelopes/decisions, MASON execution plans/receipts, and GitHub authority plans/PR bindings/receipts. Use `build --fresh` only when destructive reset is intended.
 
 ## Knowledge runtime boundary
 
@@ -182,7 +203,23 @@ One plan produces at most one immutable receipt. A successful replay returns the
 
 The receipt records the base revision as the rollback target, but this slice never force-resets history backward automatically.
 
-Most importantly, a local `APPLIED` receipt is not a GitHub write. MASON records `remote_authority_effect: NONE` and `remote_write_performed: false`. Pushing/merging remotely requires a separate adapter that re-verifies the receipt and obeys the host repository's protection, review, status-check, environment, and merge rules.
+Most importantly, a local `APPLIED` receipt is not a GitHub write. MASON records `remote_authority_effect: NONE` and `remote_write_performed: false`.
+
+## GitHub authority boundary
+
+Remote authority is a separate, stricter transition after MASON. The adapter requires an `APPLIED` MASON receipt whose exact candidate SHA is preserved and whose remote-write fields still say no remote mutation happened.
+
+The candidate commit must already be present on a named GitHub candidate branch. The target branch must still equal the MASON base revision at preparation, and the candidate branch must equal the MASON candidate revision. DevOS does not silently push a missing candidate in this slice.
+
+The adapter observes active GitHub branch/ruleset policy and binds its digest into the durable authority plan. Active rulesets can be sufficient even when legacy branch-protection details are unavailable to a metadata-read token. If neither rulesets nor inspectable protection prove a governed PR/check path, execution fails closed.
+
+This first authority adapter requires pull-request governance plus at least one required status check. It rejects unprotected/no-rules targets and currently rejects merge queues, required linear history, and required deployments as unsupported. Those need separate evidence contracts rather than approximation.
+
+Before merge, the adapter rechecks policy digest, target/base identity, PR head/base identity, required checks on the exact candidate SHA, required approval count, and GitHub mergeability. The merge request includes the expected candidate head SHA.
+
+Remote authority is recorded only after GitHub returns a merge SHA, the target branch independently resolves to that SHA, and the authoritative merge commit proves the exact candidate SHA is a parent. Only that receipt may claim `GITHUB_TARGET_BRANCH_UPDATED` and `remote_write_performed: true`.
+
+A host should supply the token at execution time through an environment variable. Tokens are instance/runtime secrets and never belong in the portable package, JSON requests, receipts, or Git history.
 
 ## Validation boundary
 
@@ -192,4 +229,4 @@ Normal validation checks that registered branch surfaces actually exist in the h
 
 An upgrade may replace package-owned files. It must preserve instance-owned files unless an explicit migration declares and verifies a transformation.
 
-When a subsystem schema changes, migrate host state explicitly. Never silently rewrite a project's queue, evidence, reflection, learning, promotion, MASON execution, authority state, or runtime-owned database state during package upgrade.
+When a subsystem schema changes, migrate host state explicitly. Never silently rewrite a project's queue, evidence, reflection, learning, promotion, MASON execution, GitHub authority, or other runtime-owned database state during package upgrade.
