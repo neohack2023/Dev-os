@@ -1,6 +1,6 @@
 # DevOS Portable Package
 
-DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, immutable local evidence, evidence-bounded reflection candidates, transfer-tested candidate capabilities, exact-revision promotion gates, and bounded local MASON execution that live with the code they serve.
+DevOS is repository-side development intelligence: routing, evidence boundaries, bounded research, reflection, task state, tool knowledge, governed learning, a local queryable knowledge projection, branch-aware context packets, immutable local evidence, evidence-bounded reflection candidates, transfer-tested candidate capabilities, exact-revision promotion gates, bounded local MASON execution, and verified GitHub remote authority that live with the code they serve.
 
 Everything owned by the package lives under `Devos/` so the folder can be copied into another repository intact.
 
@@ -146,18 +146,46 @@ This executor is local-only. It does not push, merge on GitHub, deploy, bypass r
 
 See `contracts/MASON_EXECUTION.md`, `schemas/mason-execution-request.schema.json`, and checkpoint `checkpoints/MASON_EXECUTION_PORT_01.md`.
 
+### GitHub authority adapter
+
+```bash
+python Devos/runtime/github_authority_adapter.py --db Devos/state/devos-knowledge.db \
+  prepare --mason-receipt <mason-receipt-id> path/to/github-authority-request.json
+
+python Devos/runtime/github_authority_adapter.py --db Devos/state/devos-knowledge.db \
+  open-pr --plan <github-authority-plan-id> --observed-at <timestamp>
+
+python Devos/runtime/github_authority_adapter.py --db Devos/state/devos-knowledge.db \
+  verify --plan <github-authority-plan-id>
+
+python Devos/runtime/github_authority_adapter.py --db Devos/state/devos-knowledge.db \
+  merge --plan <github-authority-plan-id> --observed-at <timestamp>
+```
+
+The adapter is the remote-authority boundary. It starts only from an immutable `APPLIED` MASON receipt that still reports no remote write, then requires explicit `GITHUB_PR_MERGE` authorization. The remote target must still equal the MASON base SHA and the candidate branch must point to the exact MASON candidate SHA.
+
+Active GitHub rules/protection are observed and hashed into the authority plan. The adapter refuses unprotected/no-rules targets, policy drift, missing PR governance, missing required checks, target/candidate drift, and unsupported merge-queue, linear-history, or required-deployment policies. Required checks and approvals are re-evaluated against the exact candidate before merge.
+
+After GitHub merges the PR, DevOS independently verifies the target branch now points to GitHub's merge SHA and that the exact candidate SHA is a parent of the authoritative merge commit. Only then does the immutable receipt claim `remote_authority_effect: GITHUB_TARGET_BRANCH_UPDATED` and `remote_write_performed: true`.
+
+The first slice intentionally supports merge-commit PRs only so candidate identity remains explicit. It never creates or bypasses repository protection. A repository without governed branch/ruleset policy is not eligible for remote authority.
+
+See `contracts/GITHUB_AUTHORITY.md`, `schemas/github-authority-request.schema.json`, and checkpoint `checkpoints/GITHUB_AUTHORITY_ADAPTER_PORT_01.md`.
+
 ## Core law
 
 - GitHub owns live repository execution truth.
 - External memory is optional and configured by the host.
 - STONE controls evidence intake and provenance.
-- MASON controls durable assembly and verified writes.
+- MASON controls durable assembly and verified local writes.
+- GitHub protection/rulesets control remote repository authority.
 - Research is bounded and need-triggered.
 - Reflection may nominate improvements but cannot self-promote them.
 - Learning requires transfer evidence and cannot self-promote.
 - Promotion decisions bind to exact candidate revisions and still do not authorize writes.
 - MASON may execute only an explicitly authorized, declared local fast-forward and must verify it again afterward.
 - A local MASON receipt never claims remote GitHub authority.
+- Remote authority is claimed only after governed GitHub PR merge plus independent target/parent verification.
 - Repetition/prevalence never upgrades authority by itself.
 - Ordinary repo work must remain possible from the checked-in local bundle.
 
