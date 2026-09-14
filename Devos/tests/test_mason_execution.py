@@ -162,7 +162,7 @@ class MasonExecutionTests(unittest.TestCase):
             },
         }
 
-    def test_schema_v6_and_prepare_is_local_only(self):
+    def test_schema_v7_and_prepare_is_local_only(self):
         repo, base, candidate, digest = self._repo()
         decision_id, envelope_id = self._seed_handoff(candidate, digest)
         result = prepare_execution(
@@ -171,7 +171,7 @@ class MasonExecutionTests(unittest.TestCase):
             repo,
             self._request(decision_id, envelope_id, candidate, base),
         )
-        self.assertEqual(6, CURRENT_SCHEMA_VERSION)
+        self.assertEqual(7, CURRENT_SCHEMA_VERSION)
         self.assertFalse(result["plan"]["remote_write_authorized"])
         self.assertFalse(result["plan"]["remote_write_performed"])
         self.assertEqual(["src/value.txt"], result["plan"]["changed_paths"])
