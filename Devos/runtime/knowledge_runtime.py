@@ -13,15 +13,20 @@ from typing import Iterable
 try:
     from .build_knowledge_db import DEFAULT_DB_NAME, build
     from .db_runtime import connect_runtime, runtime_health
+    from .knowledge_lineage import current_state
+    from .knowledge_trajectory import compact_trajectory, expand_trajectory
 except ImportError:
     from build_knowledge_db import DEFAULT_DB_NAME, build
     from db_runtime import connect_runtime, runtime_health
+    from knowledge_lineage import current_state
+    from knowledge_trajectory import compact_trajectory, expand_trajectory
 
 DEVOS_ROOT = Path(__file__).resolve().parents[1]
 PACKET_SCHEMA_VERSION = 1
 MAX_DOCUMENTS = 20
 MAX_TASKS = 20
 MAX_TOOLS = 10
+MAX_KNOWLEDGE_SUBJECTS = 20
 MAX_DOCUMENT_CHARS = 20000
 
 
@@ -200,6 +205,69 @@ def _source_manifest(connection: sqlite3.Connection, paths: set[str]) -> list[di
     ]
 
 
+def _knowledge_states(
+    connection: sqlite3.Connection,
+    query: str,
+    tokens: list[str],
+    *,
+    limit: int,
+) -> list[dict[str, object]]:
+    if limit == 0:
+        return []
+    candidates: list[dict[str, object]] = []
+    rows = connection.execute(
+        "SELECT subject_id,scope_key,knowledge_key,knowledge_kind FROM knowledge_subjects ORDER BY scope_key,knowledge_key"
+    ).fetchall()
+    for row in rows:
+        assertion_rows = connection.execute(
+            "SELECT payload_json FROM knowledge_assertions WHERE subject_id=? ORDER BY recorded_at,assertion_id",
+            (row["subject_id"],),
+        ).fetchall()
+        assertion_text = " ".join(item["payload_json"] for item in assertion_rows)
+        score = _score(
+            query,
+            tokens,
+            (
+                (row["knowledge_key"], 8),
+                (row["scope_key"], 3),
+                (row["knowledge_kind"], 2),
+                (assertion_text, 1),
+            ),
+        )
+        if score <= 0:
+            continue
+        candidates.append(
+            {
+                "subject_id": row["subject_id"],
+                "scope_key": row["scope_key"],
+                "knowledge_key": row["knowledge_key"],
+                "knowledge_kind": row["knowledge_kind"],
+                "score": score,
+                "state": current_state(connection, subject_id=row["subject_id"]),
+                "trajectory": compact_trajectory(connection, subject_id=row["subject_id"]),
+            }
+        )
+    candidates.sort(key=lambda row: (-int(row["score"]), str(row["scope_key"]), str(row["knowledge_key"])))
+    return candidates[:limit]
+
+
+def expand_knowledge_state(connection: sqlite3.Connection, *, subject_id: str) -> dict[str, object]:
+    row = connection.execute(
+        "SELECT subject_id,scope_key,knowledge_key,knowledge_kind FROM knowledge_subjects WHERE subject_id=?",
+        (subject_id,),
+    ).fetchone()
+    if row is None:
+        raise ValueError(f"unknown subject_id: {subject_id}")
+    return {
+        "subject_id": row["subject_id"],
+        "scope_key": row["scope_key"],
+        "knowledge_key": row["knowledge_key"],
+        "knowledge_kind": row["knowledge_kind"],
+        "state": current_state(connection, subject_id=subject_id),
+        "trajectory": expand_trajectory(connection, subject_id=subject_id),
+    }
+
+
 def build_packet(
     connection: sqlite3.Connection,
     host_root: Path,
@@ -209,6 +277,7 @@ def build_packet(
     limit_documents: int = 6,
     limit_tasks: int = 6,
     limit_tools: int = 4,
+    limit_knowledge: int = 6,
     max_document_chars: int = 6000,
 ) -> dict[str, object]:
     if not 1 <= limit_documents <= MAX_DOCUMENTS:
@@ -217,6 +286,8 @@ def build_packet(
         raise ValueError(f"limit_tasks must be 0..{MAX_TASKS}")
     if not 0 <= limit_tools <= MAX_TOOLS:
         raise ValueError(f"limit_tools must be 0..{MAX_TOOLS}")
+    if not 0 <= limit_knowledge <= MAX_KNOWLEDGE_SUBJECTS:
+        raise ValueError(f"limit_knowledge must be 0..{MAX_KNOWLEDGE_SUBJECTS}")
     if not 0 <= max_document_chars <= MAX_DOCUMENT_CHARS:
         raise ValueError(f"max_document_chars must be 0..{MAX_DOCUMENT_CHARS}")
 
@@ -364,6 +435,7 @@ def build_packet(
         tools.sort(key=lambda row: (-row["score"], row["tool_key"]))
         tools = tools[:limit_tools]
 
+    knowledge_states = _knowledge_states(connection, query, tokens, limit=limit_knowledge)
     branch_payload = [branch_index[key] for key in resolved]
     meta = _project_meta(connection)
     fixed_sources = {
@@ -391,6 +463,7 @@ def build_packet(
             "documents": limit_documents,
             "tasks": limit_tasks,
             "tools": limit_tools,
+            "knowledge": limit_knowledge,
             "max_document_chars": max_document_chars,
         },
         "context": {
@@ -398,6 +471,7 @@ def build_packet(
             "documents": documents,
             "tasks": tasks,
             "tools": tools,
+            "knowledge_states": knowledge_states,
         },
         "source_manifest": sources,
         "document_chars_used": max_document_chars - chars_left,
@@ -419,6 +493,8 @@ def status_payload(connection: sqlite3.Connection, host_root: Path) -> dict[str,
             "tasks": connection.execute("SELECT count(*) FROM devos_tasks").fetchone()[0],
             "tools": connection.execute("SELECT count(*) FROM tool_registry").fetchone()[0],
             "documents": connection.execute("SELECT count(*) FROM documents").fetchone()[0],
+            "knowledge_subjects": connection.execute("SELECT count(*) FROM knowledge_subjects").fetchone()[0],
+            "knowledge_transitions": connection.execute("SELECT count(*) FROM knowledge_state_transitions").fetchone()[0],
         },
         "database": runtime_health(connection),
     }
@@ -449,7 +525,11 @@ def main() -> int:
     packet.add_argument("--limit-documents", type=int, default=6)
     packet.add_argument("--limit-tasks", type=int, default=6)
     packet.add_argument("--limit-tools", type=int, default=4)
+    packet.add_argument("--limit-knowledge", type=int, default=6)
     packet.add_argument("--max-document-chars", type=int, default=6000)
+
+    expand = sub.add_parser("expand-knowledge")
+    expand.add_argument("subject_id")
 
     args = parser.parse_args()
     devos_root = args.devos_root.resolve()
@@ -460,6 +540,8 @@ def main() -> int:
         connection = _open(devos_root, host_root, db_path, args.refresh)
         if args.command == "status":
             result = {"ok": True, **status_payload(connection, host_root)}
+        elif args.command == "expand-knowledge":
+            result = {"ok": True, "knowledge": expand_knowledge_state(connection, subject_id=args.subject_id)}
         else:
             result = {
                 "ok": True,
@@ -471,6 +553,7 @@ def main() -> int:
                     limit_documents=args.limit_documents,
                     limit_tasks=args.limit_tasks,
                     limit_tools=args.limit_tools,
+                    limit_knowledge=args.limit_knowledge,
                     max_document_chars=args.max_document_chars,
                 ),
             }
