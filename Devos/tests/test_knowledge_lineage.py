@@ -43,10 +43,10 @@ class KnowledgeLineageTests(unittest.TestCase):
             recorded_at=when,
         )
 
-    def test_schema_v9_is_current(self):
+    def test_schema_v10_is_current(self):
         health = db.runtime_health(self.connection)
-        self.assertEqual(9, health["schema_version"])
-        self.assertEqual(9, health["user_version"])
+        self.assertEqual(10, health["schema_version"])
+        self.assertEqual(10, health["user_version"])
 
     def test_stable_subject_identity_is_deterministic_and_kind_locked(self):
         sid1 = self.subject()
