@@ -13,7 +13,9 @@ sys.path.insert(0, str(RUNTIME))
 
 from build_knowledge_db import build
 from db_runtime import connect_runtime
-from knowledge_runtime import build_packet, projection_freshness, status_payload
+import knowledge_lineage as lineage
+import knowledge_trajectory as trajectory
+from knowledge_runtime import build_packet, expand_knowledge_state, projection_freshness, status_payload
 
 FIXTURE = ROOT / "tests" / "fixtures" / "knowledge_db" / "host"
 
@@ -29,6 +31,50 @@ class KnowledgeRuntimeTests(unittest.TestCase):
         connection = connect_runtime(db)
         self.addCleanup(connection.close)
         return host, db, connection
+
+    def add_python_trajectory(self, connection):
+        sid = lineage.ensure_subject(
+            connection,
+            scope_key="github:fixture/host",
+            knowledge_key="runtime.python.minimum",
+            knowledge_kind="semantic",
+            created_at="2026-09-15T09:00:00Z",
+        )
+        old = lineage.append_assertion(
+            connection,
+            subject_id=sid,
+            claim={"value": "3.10"},
+            evidence_refs=["repo:old"],
+            recorded_at="2026-09-15T09:01:00Z",
+        )
+        new = lineage.append_assertion(
+            connection,
+            subject_id=sid,
+            claim={"value": "3.11"},
+            evidence_refs=["repo:pyproject.toml"],
+            recorded_at="2026-09-15T10:00:00Z",
+        )
+        edge = lineage.link_assertions(
+            connection,
+            relation="SUPERSEDES",
+            from_assertion_id=new,
+            to_assertion_id=old,
+            rationale="minimum raised",
+            created_at="2026-09-15T10:01:00Z",
+        )
+        record = trajectory.build_transition(
+            subject_id=sid,
+            relation="SUPERSEDES",
+            from_assertion_id=new,
+            to_assertion_id=old,
+            reason="runtime support floor was raised after CI validation",
+            basis_refs=["repo:pyproject.toml", "ci:portable-validation"],
+            effective_at="2026-09-15T10:00:00Z",
+            recorded_at="2026-09-15T10:02:00Z",
+        )
+        trajectory.persist_transition(connection, record, edge_id=edge)
+        connection.commit()
+        return sid, record
 
     def test_packet_resolves_branch_closure_and_ranks_direct_scope_first(self):
         host, _, connection = self.make_runtime()
@@ -91,6 +137,26 @@ class KnowledgeRuntimeTests(unittest.TestCase):
         packet = build_packet(connection, host, "lantern", ["feature-lantern"])
         encoded = json.dumps(packet, sort_keys=True)
         self.assertIn(packet["packet_hash"], encoded)
+
+    def test_packet_returns_current_state_with_compact_trajectory(self):
+        host, _, connection = self.make_runtime()
+        sid, record = self.add_python_trajectory(connection)
+        packet = build_packet(connection, host, "python minimum", ["project-core"])
+        states = packet["context"]["knowledge_states"]
+        self.assertTrue(states)
+        self.assertEqual(sid, states[0]["subject_id"])
+        self.assertEqual("ACTIVE", states[0]["state"]["status"])
+        self.assertEqual({"value": "3.11"}, states[0]["state"]["claims"][0]["claim"])
+        self.assertEqual(record["transition_id"], states[0]["trajectory"][0]["transition_id"])
+        self.assertEqual(2, states[0]["trajectory"][0]["basis_count"])
+        self.assertNotIn("basis_refs", states[0]["trajectory"][0])
+
+    def test_expand_knowledge_state_returns_full_transition_evidence(self):
+        _, _, connection = self.make_runtime()
+        sid, record = self.add_python_trajectory(connection)
+        expanded = expand_knowledge_state(connection, subject_id=sid)
+        self.assertEqual(record["basis_refs"], expanded["trajectory"][0]["basis_refs"])
+        self.assertEqual(record["reason"], expanded["trajectory"][0]["reason"])
 
 
 if __name__ == "__main__":
