@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sqlite3
 from typing import Mapping
 
 RELATIONS = {"CONFIRMS", "SUPERSEDES", "CONFLICTS"}
@@ -169,3 +170,152 @@ def trajectory(records: list[Mapping[str, object]], *, subject_id: str) -> list[
         seen.add(tid)
         selected.append(dict(item))
     return sorted(selected, key=lambda row: (str(row["effective_at"]), str(row["recorded_at"]), str(row["transition_id"])))
+
+
+def _assertions_for_record(connection: sqlite3.Connection, record: Mapping[str, object]) -> dict[str, dict[str, object]]:
+    ids = [str(record["from_assertion_id"]), str(record["to_assertion_id"])]
+    rows = connection.execute(
+        "SELECT assertion_id,subject_id,claim_hash FROM knowledge_assertions WHERE assertion_id IN (?,?)",
+        ids,
+    ).fetchall()
+    return {row["assertion_id"]: dict(row) for row in rows}
+
+
+def _resolve_edge(connection: sqlite3.Connection, record: Mapping[str, object], edge_id: str | None) -> sqlite3.Row:
+    if edge_id:
+        row = connection.execute(
+            "SELECT edge_id,subject_id,relation,from_assertion_id,to_assertion_id,rationale,created_at "
+            "FROM knowledge_lineage_edges WHERE edge_id=?",
+            (edge_id,),
+        ).fetchone()
+    else:
+        row = connection.execute(
+            "SELECT edge_id,subject_id,relation,from_assertion_id,to_assertion_id,rationale,created_at "
+            "FROM knowledge_lineage_edges WHERE subject_id=? AND relation=? AND from_assertion_id=? AND to_assertion_id=?",
+            (
+                record["subject_id"],
+                str(record["relation"]).upper(),
+                record["from_assertion_id"],
+                record["to_assertion_id"],
+            ),
+        ).fetchone()
+    if row is None:
+        raise ValueError("transition requires an existing matching lineage edge")
+    return row
+
+
+def persist_transition(
+    connection: sqlite3.Connection,
+    record: Mapping[str, object],
+    *,
+    edge_id: str | None = None,
+) -> str:
+    """Persist one transition after binding it to the exact lineage edge it explains."""
+    assertions = _assertions_for_record(connection, record)
+    edge = _resolve_edge(connection, record, edge_id)
+    validate_transition(record, assertions=assertions, edge=dict(edge))
+
+    refs = sorted(dict.fromkeys(str(item) for item in record["basis_refs"]))
+    metadata = record.get("metadata") or {}
+    values = (
+        str(record["transition_id"]),
+        edge["edge_id"],
+        str(record["subject_id"]),
+        str(record["relation"]).upper(),
+        str(record["from_assertion_id"]),
+        str(record["to_assertion_id"]),
+        str(record["reason"]).strip(),
+        _canonical_json(refs),
+        record.get("trigger_ref"),
+        record.get("decision_ref"),
+        str(record["effective_at"]),
+        str(record["recorded_at"]),
+        _canonical_json(metadata),
+    )
+    existing = connection.execute(
+        "SELECT transition_id,edge_id,subject_id,relation,from_assertion_id,to_assertion_id,reason,basis_refs_json,"
+        "trigger_ref,decision_ref,effective_at,recorded_at,metadata_json FROM knowledge_state_transitions WHERE transition_id=?",
+        (record["transition_id"],),
+    ).fetchone()
+    if existing:
+        if tuple(existing) != values:
+            raise ValueError("transition identifier collision")
+        return str(record["transition_id"])
+
+    edge_existing = connection.execute(
+        "SELECT transition_id FROM knowledge_state_transitions WHERE edge_id=?",
+        (edge["edge_id"],),
+    ).fetchone()
+    if edge_existing:
+        raise ValueError("lineage edge already has a persisted transition")
+
+    connection.execute(
+        "INSERT INTO knowledge_state_transitions(transition_id,edge_id,subject_id,relation,from_assertion_id,to_assertion_id,"
+        "reason,basis_refs_json,trigger_ref,decision_ref,effective_at,recorded_at,metadata_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        values,
+    )
+    return str(record["transition_id"])
+
+
+def compact_trajectory(connection: sqlite3.Connection, *, subject_id: str, limit: int = 8) -> list[dict[str, object]]:
+    if limit < 0:
+        raise ValueError("trajectory limit must be non-negative")
+    rows = connection.execute(
+        "SELECT transition_id,edge_id,relation,from_assertion_id,to_assertion_id,reason,basis_refs_json,"
+        "trigger_ref,decision_ref,effective_at,recorded_at FROM knowledge_state_transitions "
+        "WHERE subject_id=? ORDER BY effective_at DESC, recorded_at DESC, transition_id DESC LIMIT ?",
+        (subject_id, limit),
+    ).fetchall()
+    result: list[dict[str, object]] = []
+    for row in reversed(rows):
+        refs = json.loads(row["basis_refs_json"])
+        result.append(
+            {
+                "transition_id": row["transition_id"],
+                "edge_id": row["edge_id"],
+                "relation": row["relation"],
+                "from_assertion_id": row["from_assertion_id"],
+                "to_assertion_id": row["to_assertion_id"],
+                "reason": row["reason"],
+                "basis_count": len(refs),
+                "effective_at": row["effective_at"],
+                "recorded_at": row["recorded_at"],
+                "has_trigger": bool(row["trigger_ref"]),
+                "has_decision": bool(row["decision_ref"]),
+            }
+        )
+    return result
+
+
+def expand_transition(connection: sqlite3.Connection, *, transition_id: str) -> dict[str, object]:
+    row = connection.execute(
+        "SELECT transition_id,edge_id,subject_id,relation,from_assertion_id,to_assertion_id,reason,basis_refs_json,"
+        "trigger_ref,decision_ref,effective_at,recorded_at,metadata_json FROM knowledge_state_transitions WHERE transition_id=?",
+        (transition_id,),
+    ).fetchone()
+    if row is None:
+        raise ValueError(f"unknown transition_id: {transition_id}")
+    return {
+        "transition_id": row["transition_id"],
+        "edge_id": row["edge_id"],
+        "subject_id": row["subject_id"],
+        "relation": row["relation"],
+        "from_assertion_id": row["from_assertion_id"],
+        "to_assertion_id": row["to_assertion_id"],
+        "reason": row["reason"],
+        "basis_refs": json.loads(row["basis_refs_json"]),
+        "trigger_ref": row["trigger_ref"],
+        "decision_ref": row["decision_ref"],
+        "effective_at": row["effective_at"],
+        "recorded_at": row["recorded_at"],
+        "metadata": json.loads(row["metadata_json"]),
+    }
+
+
+def expand_trajectory(connection: sqlite3.Connection, *, subject_id: str) -> list[dict[str, object]]:
+    rows = connection.execute(
+        "SELECT transition_id FROM knowledge_state_transitions WHERE subject_id=? "
+        "ORDER BY effective_at,recorded_at,transition_id",
+        (subject_id,),
+    ).fetchall()
+    return [expand_transition(connection, transition_id=row["transition_id"]) for row in rows]
