@@ -94,6 +94,14 @@
       "execution_scope": "stable-identity-immutable-assertion-lineage"
     },
     {
+      "key": "knowledge_state_trajectory",
+      "checkpoint": "KNOWLEDGE_STATE_TRAJECTORY_01",
+      "runtime": ["runtime/knowledge_trajectory.py", "runtime/knowledge_runtime.py"],
+      "schemas": ["schemas/runtime-db-v10.sql", "schemas/knowledge-state-transition.schema.json", "schemas/context-packet.schema.json"],
+      "contract": "contracts/KNOWLEDGE_STATE_TRAJECTORY.md",
+      "execution_scope": "persisted-edge-bound-transition+compact-retrieval+evidence-expansion"
+    },
+    {
       "key": "host_performance",
       "checkpoint": "HOST_PERFORMANCE_PROBE_01",
       "runtime": "runtime/host_performance.py",
