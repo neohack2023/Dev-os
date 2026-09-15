@@ -58,8 +58,8 @@ class GitHubAuthorityAdapterTests(unittest.TestCase):
         self.connection.execute("INSERT INTO mason_execution_receipts(receipt_id,plan_id,outcome,base_revision,post_revision,change_digest,payload_json,observed_at,local_authority_effect,remote_authority_effect,remote_write_performed) VALUES (?,?,?,?,?,?,?,?,?,?,0)",(receipt["receipt_id"],receipt["plan_id"],outcome,BASE,receipt["post_revision"],"d"*64,json.dumps(receipt,sort_keys=True,separators=(",",":")),"2026-09-14T00:01:00Z","LOCAL_GIT_REF_UPDATED" if outcome=="APPLIED" else "NONE","NONE")); self.connection.commit()
     def request(self): return {"observed_at":"2026-09-14T00:02:00Z","candidate_branch":"devos/candidate","authorization":{"authorization_id":"auth:github","source":"fixture-operator","actor":"reviewer","observed_at":"2026-09-14T00:02:00Z","grant":"GITHUB_PR_MERGE","mason_receipt_id":"mason-receipt:fixture","candidate_revision":CANDIDATE,"repository":"owner/fixture","target_branch":"main","candidate_branch":"devos/candidate","approved":True}}
     def prepare(self): return prepare_remote(self.connection,"mason-receipt:fixture",self.client,self.request())["plan"]
-    def test_schema_v9_and_prepare_binds_policy(self):
-        plan=self.prepare(); self.assertEqual(9,CURRENT_SCHEMA_VERSION); self.assertTrue(plan["remote_write_authorized"]); self.assertEqual("merge",plan["merge_method"]); self.assertEqual(["ci"],plan["policy"]["required_checks"]); self.assertEqual(1,plan["policy"]["required_approvals"])
+    def test_schema_v10_and_prepare_binds_policy(self):
+        plan=self.prepare(); self.assertEqual(10,CURRENT_SCHEMA_VERSION); self.assertTrue(plan["remote_write_authorized"]); self.assertEqual("merge",plan["merge_method"]); self.assertEqual(["ci"],plan["policy"]["required_checks"]); self.assertEqual(1,plan["policy"]["required_approvals"])
     def test_unprotected_policy_is_rejected(self):
         self.client.branches["main"]["protected"]=False; self.client.rule_rows=[]
         with self.assertRaisesRegex(ValueError,"no active protection"): self.prepare()
