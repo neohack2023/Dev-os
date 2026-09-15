@@ -13,7 +13,8 @@ MIGRATION_6=DEVOS_ROOT/"schemas"/"runtime-db-v6.sql"
 MIGRATION_7=DEVOS_ROOT/"schemas"/"runtime-db-v7.sql"
 MIGRATION_8=DEVOS_ROOT/"schemas"/"runtime-db-v8.sql"
 MIGRATION_9=DEVOS_ROOT/"schemas"/"runtime-db-v9.sql"
-CURRENT_SCHEMA_VERSION=9
+MIGRATION_10=DEVOS_ROOT/"schemas"/"runtime-db-v10.sql"
+CURRENT_SCHEMA_VERSION=10
 BUSY_TIMEOUT_MS=5000
 MIGRATION_1_SIGNATURE="devos-runtime-db-v1:projection+fts+runtime-kv"
 MIGRATION_2_SIGNATURE="devos-runtime-db-v2:evidence-roots+findings+triangulation+deltas"
@@ -24,6 +25,7 @@ MIGRATION_6_SIGNATURE="devos-runtime-db-v6:mason-execution-plans+immutable-recei
 MIGRATION_7_SIGNATURE="devos-runtime-db-v7:github-authority-plans+prs+remote-receipts"
 MIGRATION_8_SIGNATURE="devos-runtime-db-v8:github-policy-audits+receipts"
 MIGRATION_9_SIGNATURE="devos-runtime-db-v9:stable-knowledge-identities+assertions+lineage"
+MIGRATION_10_SIGNATURE="devos-runtime-db-v10:evidence-bearing-knowledge-state-transitions"
 def _table_exists(connection,table): return connection.execute("SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name=?",(table,)).fetchone() is not None
 def _ensure_fts(connection):
     if _table_exists(connection,"documents_fts"): return True
@@ -51,6 +53,7 @@ def ensure_schema(connection):
     connection.executescript(MIGRATION_7.read_text()); _record_migration(connection,7,MIGRATION_7_SIGNATURE)
     connection.executescript(MIGRATION_8.read_text()); _record_migration(connection,8,MIGRATION_8_SIGNATURE)
     connection.executescript(MIGRATION_9.read_text()); _record_migration(connection,9,MIGRATION_9_SIGNATURE)
+    connection.executescript(MIGRATION_10.read_text()); _record_migration(connection,10,MIGRATION_10_SIGNATURE)
     connection.execute(f"PRAGMA user_version={CURRENT_SCHEMA_VERSION}"); connection.commit()
 def connect_runtime(path:Path):
     path=Path(path); path.parent.mkdir(parents=True,exist_ok=True); c=sqlite3.connect(path); c.row_factory=sqlite3.Row

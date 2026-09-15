@@ -38,12 +38,29 @@
     "limits": {"type": "object"},
     "context": {
       "type": "object",
-      "required": ["branches", "documents", "tasks", "tools"],
+      "required": ["branches", "documents", "tasks", "tools", "knowledge_states"],
       "properties": {
         "branches": {"type": "array"},
         "documents": {"type": "array"},
         "tasks": {"type": "array"},
-        "tools": {"type": "array"}
+        "tools": {"type": "array"},
+        "knowledge_states": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["subject_id", "scope_key", "knowledge_key", "knowledge_kind", "score", "state", "trajectory"],
+            "properties": {
+              "subject_id": {"type": "string"},
+              "scope_key": {"type": "string"},
+              "knowledge_key": {"type": "string"},
+              "knowledge_kind": {"type": "string"},
+              "score": {"type": "integer", "minimum": 1},
+              "state": {"type": "object"},
+              "trajectory": {"type": "array"}
+            },
+            "additionalProperties": false
+          }
+        }
       },
       "additionalProperties": false
     },
